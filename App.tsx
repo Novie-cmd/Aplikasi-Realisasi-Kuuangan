@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, MonitorSmartphone } from 'lucide-react';
+import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, MonitorSmartphone, DownloadCloud } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import MasterDataPage from './pages/MasterData';
 import ExpenditureDataPage from './pages/ExpenditureData';
@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
   
   // Persistence using LocalStorage
   const [masterData, setMasterData] = useState<MasterData[]>(() => {
@@ -46,8 +47,15 @@ const App: React.FC = () => {
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setShowInstallBanner(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
+    
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallBanner(false);
+    }
+
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
@@ -57,6 +65,7 @@ const App: React.FC = () => {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+      setShowInstallBanner(false);
     }
   };
 
@@ -112,19 +121,22 @@ const App: React.FC = () => {
             </button>
           </nav>
           
-          <div className="p-4 border-t border-indigo-800 space-y-4">
-            {deferredPrompt && (
-              <button 
-                onClick={handleInstallClick}
-                className="w-full flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white py-2 rounded-lg text-xs font-bold transition-all animate-bounce"
-              >
-                <MonitorSmartphone size={14} />
-                {isSidebarOpen ? 'Install Desktop App' : 'Install'}
-              </button>
+          <div className="p-4 border-t border-indigo-800">
+            {showInstallBanner && deferredPrompt && (
+              <div className="bg-indigo-800/50 p-3 rounded-xl border border-indigo-700 mb-4 animate-in fade-in zoom-in-95">
+                <p className="text-[10px] text-indigo-300 mb-2 font-medium">Aplikasi ini tersedia untuk Desktop</p>
+                <button 
+                  onClick={handleInstallClick}
+                  className="w-full flex items-center justify-center gap-2 bg-white text-indigo-900 py-2 rounded-lg text-xs font-bold transition-all hover:bg-indigo-50 shadow-lg"
+                >
+                  <DownloadCloud size={14} />
+                  Pasang Sekarang
+                </button>
+              </div>
             )}
             {isSidebarOpen && (
-              <div className="text-xs text-indigo-400 text-center">
-                © 2024 FinRealize v1.0
+              <div className="text-xs text-indigo-400 text-center font-medium">
+                © 2024 FinRealize v1.1
               </div>
             )}
           </div>
@@ -141,7 +153,7 @@ const App: React.FC = () => {
              activePage === 'spending' ? 'Catatan Belanja' : 'Laporan Keuangan'}
           </h2>
           <div className="flex items-center gap-4">
-             <div className="text-sm text-gray-500 hidden sm:block">Admin Keuangan</div>
+             <div className="text-sm text-gray-500 hidden sm:block font-medium">Admin Keuangan</div>
              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold">A</div>
           </div>
         </header>
