@@ -56,8 +56,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
   };
 
   const clearData = () => {
-    if (confirm('Apakah Anda yakin ingin menghapus semua data realisasi?')) {
+    if (window.confirm('Apakah Anda yakin ingin menghapus seluruh data realisasi?')) {
       setData([]);
+      setImportStatus('Berhasil: Semua data realisasi telah dihapus.');
+      setTimeout(() => setImportStatus(null), 3000);
     }
   };
 
@@ -111,7 +113,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
       </div>
 
       {importStatus && (
-        <div className={`p-4 rounded-lg flex items-center gap-2 text-sm font-medium shadow-sm animate-in fade-in slide-in-from-top-2 ${importStatus.includes('Berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`p-4 rounded-lg flex items-center gap-2 text-sm font-medium shadow-sm animate-in fade-in slide-in-from-top-2 ${importStatus.includes('Berhasil') ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700'}`}>
           <AlertCircle size={18} />
           {importStatus}
         </div>

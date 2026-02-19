@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# FinRealize - Sistem Informasi Realisasi Keuangan (Cloud Ready)
 
-This contains everything you need to run your app locally.
+Aplikasi manajemen anggaran dan realisasi keuangan yang mendukung impor data dari Excel, visualisasi data interaktif, dan analisis cerdas menggunakan Gemini AI.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1sY6hd1ikMHwnXsw1Oy8E3kMvDm4Uh4dz
+## Fitur Utama
+- **Dashboard**: Ringkasan anggaran, realisasi, dan sisa anggaran secara real-time.
+- **Data Master**: Impor anggaran SKPD via Excel.
+- **Realisasi**: Pencatatan transaksi realisasi keuangan.
+- **Laporan**: Cetak laporan per Program, Kegiatan, atau Sub Kegiatan ke Excel.
+- **AI Insights**: Analisis otomatis performa keuangan menggunakan Google Gemini 3 Flash.
+- **Cloud Ready**: Sudah dilengkapi dengan API Service untuk dihubungkan ke database eksternal (Supabase/Firebase).
 
-## Run Locally
+## Teknologi
+- **Frontend**: React (TSX), Tailwind CSS
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Excel Processing**: SheetJS (XLSX)
+- **AI**: Google Generative AI (Gemini API)
 
-**Prerequisites:**  Node.js
+## Cara Menjalankan
+1. Pastikan Anda memiliki Node.js terinstall.
+2. Clone repositori ini.
+3. Jalankan `npm install` atau `yarn install`.
+4. Tambahkan `API_KEY` Gemini Anda di environment variable.
+5. Jalankan `npm run dev` atau `npm start`.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Struktur Folder
+- `/pages`: Halaman utama aplikasi.
+- `/services`: Logika API, Data, dan AI.
+- `types.ts`: Definisi struktur data (TypeScript).
