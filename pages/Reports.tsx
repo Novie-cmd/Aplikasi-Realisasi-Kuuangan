@@ -18,7 +18,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
   // List Sub Kegiatan untuk dropdown (hanya muncul di level sub_kegiatan)
   const subKegList = useMemo(() => {
-    const unique = Array.from(new Set(masterData.map(m => m.sub_kegiatan))).filter(Boolean);
+    const unique = Array.from(new Set(masterData.map(m => m.sub_kegiatan?.trim()))).filter(Boolean);
     return ['All', ...unique];
   }, [masterData]);
 
@@ -33,28 +33,30 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       skpd: string;
     }> = {};
 
+    // 1. Proses Data Master (Anggaran)
     masterData.forEach(m => {
-      // Filter Sub Kegiatan hanya berlaku jika levelnya 'sub_kegiatan'
-      if (level === 'sub_kegiatan' && selectedSubKeg !== 'All' && m.sub_kegiatan !== selectedSubKeg) return;
+      const mSubKeg = (m.sub_kegiatan || '').trim();
+      if (level === 'sub_kegiatan' && selectedSubKeg !== 'All' && mSubKeg !== selectedSubKeg) return;
 
       let key = '';
       let name = '';
       let kode = '';
       let parentName = '';
+      
+      const skpdClean = (m.skpd || '').trim();
 
       if (level === 'program') {
-        // Gabungkan SKPD dan Program agar unik
-        key = `${m.skpd}-${m.program}`;
+        key = `${skpdClean}-${(m.program || '').trim()}`;
         name = m.program;
-        kode = ''; 
+        kode = m.kode_program || ''; 
       } else if (level === 'kegiatan') {
-        key = `${m.skpd}-${m.kode_kegiatan}`;
+        key = `${skpdClean}-${(m.kode_kegiatan || '').trim()}`;
         name = m.kegiatan;
         kode = m.kode_kegiatan;
         parentName = m.program;
       } else {
-        // Level Sub Kegiatan: Tampilan adalah Belanja
-        key = `${m.skpd}-${m.kode_sub_kegiatan}-${m.kode_belanja}`;
+        // Level Sub Kegiatan: Tampilan per Belanja
+        key = `${skpdClean}-${(m.kode_sub_kegiatan || '').trim()}-${(m.kode_belanja || '').trim()}`;
         name = m.belanja;
         kode = m.kode_belanja;
         parentName = m.sub_kegiatan;
@@ -73,26 +75,47 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       }
       aggregated[key].anggaran += Number(m.anggaran) || 0;
       aggregated[key].pagu_spd += Number(m.pagu_spd) || 0;
+      // Master data mungkin membawa nilai realisasi awal
       aggregated[key].realisasi += Number(m.realisasi) || 0;
     });
 
-    // Tambahkan realisasi dari data transaksi
+    // 2. Tambahkan/Gabungkan Data Realisasi dari transaksi terpisah
     realizationData.forEach(r => {
-      if (level === 'sub_kegiatan' && selectedSubKeg !== 'All' && r.sub_kegiatan !== selectedSubKeg) return;
+      const rSubKeg = (r.sub_kegiatan || '').trim();
+      if (level === 'sub_kegiatan' && selectedSubKeg !== 'All' && rSubKeg !== selectedSubKeg) return;
 
       let key = '';
-      if (level === 'program') key = `${r.skpd}-${r.program}`;
-      else if (level === 'kegiatan') key = `${r.skpd}-${r.kode_kegiatan}`;
-      else key = `${r.skpd}-${r.kode_sub_kegiatan}-${r.kode_belanja}`;
+      const skpdClean = (r.skpd || '').trim();
 
+      if (level === 'program') {
+        key = `${skpdClean}-${(r.program || '').trim()}`;
+      } else if (level === 'kegiatan') {
+        key = `${skpdClean}-${(r.kode_kegiatan || '').trim()}`;
+      } else {
+        key = `${skpdClean}-${(r.kode_sub_kegiatan || '').trim()}-${(r.kode_belanja || '').trim()}`;
+      }
+
+      // Jika kunci sudah ada (ada anggaran), tambahkan realisasinya
       if (aggregated[key]) {
         aggregated[key].realisasi += Number(r.realisasi) || 0;
+      } else {
+        // Jika realisasi ada tapi data master tidak ditemukan (anomali data), tetap tampilkan sebagai baris baru
+        aggregated[key] = {
+          name: r.belanja || r.kegiatan || r.program || 'Data Tanpa Master',
+          kode: r.kode_belanja || r.kode_kegiatan || r.kode_program || '-',
+          parentName: level === 'sub_kegiatan' ? r.sub_kegiatan : (level === 'kegiatan' ? r.program : ''),
+          anggaran: 0,
+          pagu_spd: 0,
+          realisasi: Number(r.realisasi) || 0,
+          skpd: r.skpd
+        };
       }
     });
 
+    // 3. Filter berdasarkan pencarian
     return Object.values(aggregated).filter(item => 
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.kode.includes(searchTerm) ||
+      item.kode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.skpd.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [masterData, realizationData, level, selectedSubKeg, searchTerm]);
@@ -180,12 +203,12 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
           )}
 
           <div className={`${level === 'sub_kegiatan' ? 'md:col-span-2' : 'md:col-span-3'} space-y-1`}>
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Cari Nama / Uraian</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Cari Nama / Uraian / Kode</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
                 type="text" 
-                placeholder={`Cari...`}
+                placeholder={`Ketik kata kunci pencarian...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
@@ -201,9 +224,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">SKPD</th>
-                {level !== 'program' && <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Kode</th>}
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Kode</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                  {level === 'program' ? 'Program' : level === 'kegiatan' ? 'Kegiatan' : 'Belanja'}
+                  {level === 'program' ? 'Program' : level === 'kegiatan' ? 'Kegiatan' : 'Uraian Belanja'}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Anggaran</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">SPD</th>
@@ -223,7 +246,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                     return (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-gray-500 whitespace-nowrap">{row.skpd}</td>
-                        {level !== 'program' && <td className="px-6 py-4 text-sm font-mono text-indigo-600">{row.kode}</td>}
+                        <td className="px-6 py-4 text-sm font-mono text-indigo-600">{row.kode}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             {row.parentName && <span className="text-[10px] text-gray-400 uppercase font-bold truncate max-w-[300px]" title={row.parentName}>{row.parentName}</span>}
@@ -244,7 +267,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                     );
                   })}
                   <tr className="bg-gray-100 font-extrabold border-t-2 border-gray-300">
-                    <td className="px-6 py-4 text-sm text-gray-900" colSpan={level === 'program' ? 2 : 3}>TOTAL JUMLAH</td>
+                    <td className="px-6 py-4 text-sm text-gray-900" colSpan={3}>TOTAL JUMLAH</td>
                     <td className="px-6 py-4 text-sm text-gray-900 text-right">{formatIDR(totals.anggaran)}</td>
                     <td className="px-6 py-4 text-sm text-blue-700 text-right">{formatIDR(totals.pagu_spd)}</td>
                     <td className="px-6 py-4 text-sm text-emerald-700 text-right">{formatIDR(totals.realisasi)}</td>
@@ -259,11 +282,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                 </>
               ) : (
                 <tr>
-                  <td colSpan={level === 'program' ? 8 : 9} className="px-6 py-24 text-center text-gray-400">
+                  <td colSpan={9} className="px-6 py-24 text-center text-gray-400">
                     <div className="flex flex-col items-center gap-2">
                       <FileSpreadsheet size={64} className="text-gray-200" />
                       <p className="text-lg font-bold">Data tidak ditemukan.</p>
-                      <p className="text-sm">Silakan import Data Master terlebih dahulu.</p>
+                      <p className="text-sm">Silakan import Data Master dan Data Realisasi terlebih dahulu.</p>
                     </div>
                   </td>
                 </tr>
