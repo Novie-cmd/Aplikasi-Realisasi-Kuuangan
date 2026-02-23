@@ -14,6 +14,19 @@ type ReportLevel = 'program' | 'kegiatan' | 'sub_kegiatan';
 const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
   const [level, setLevel] = useState<ReportLevel>('program');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
+  const [selectedBelanja, setSelectedBelanja] = useState<string>('all');
+
+  // Ambil daftar unik untuk dropdown
+  const subKegiatanList = useMemo(() => {
+    const list = Array.from(new Set(masterData.map(m => m.sub_kegiatan))).filter(Boolean).sort();
+    return list;
+  }, [masterData]);
+
+  const belanjaList = useMemo(() => {
+    const list = Array.from(new Set(masterData.map(m => m.belanja))).filter(Boolean).sort();
+    return list;
+  }, [masterData]);
 
   // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
   const clean = (val: any): string => {
@@ -47,6 +60,10 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
     // 2. Iterasi Master Data untuk membangun struktur laporan
     masterData.forEach(m => {
+      // Filter berdasarkan dropdown jika dipilih
+      if (selectedSubKegiatan !== 'all' && m.sub_kegiatan !== selectedSubKegiatan) return;
+      if (selectedBelanja !== 'all' && m.belanja !== selectedBelanja) return;
+
       let key = '';
       let name = '';
       let kode = '';
@@ -105,6 +122,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       // Cari data asli untuk mendapatkan nama belanja
       const original = realizationData.find(rd => `${clean(rd.skpd)}|${clean(rd.kode_belanja)}` === rKey);
 
+      // Filter anomali juga jika filter belanja aktif
+      if (selectedBelanja !== 'all' && original?.belanja !== selectedBelanja) return;
+      // Filter anomali jika filter sub kegiatan aktif (anomali biasanya tidak punya sub kegiatan yang jelas di master)
+      if (selectedSubKegiatan !== 'all' && original?.sub_kegiatan !== selectedSubKegiatan) return;
+
       aggregated[unmappedKey] = {
         name: original?.belanja || 'Kode Belanja Tidak Terdaftar di Master',
         kode: original?.kode_belanja || '?',
@@ -123,7 +145,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       clean(item.kode).includes(clean(searchTerm)) ||
       clean(item.skpd).includes(clean(searchTerm))
     );
-  }, [masterData, realizationData, level, searchTerm]);
+  }, [masterData, realizationData, level, searchTerm, selectedSubKegiatan, selectedBelanja]);
 
   const totals = useMemo(() => {
     return reportData.reduce((acc, curr) => {
@@ -162,27 +184,62 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border">
-          {['program', 'kegiatan', 'sub_kegiatan'].map((l) => (
-            <button 
-              key={l} 
-              onClick={() => setLevel(l as any)} 
-              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all ${level === l ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              {l.replace('_', ' ')}
-            </button>
-          ))}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border">
+            {['program', 'kegiatan', 'sub_kegiatan'].map((l) => (
+              <button 
+                key={l} 
+                onClick={() => setLevel(l as any)} 
+                className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all ${level === l ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {l.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+            <input 
+              type="text" 
+              placeholder="Cari Nama / Uraian / Kode / SKPD..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
+            />
+          </div>
         </div>
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-          <input 
-            type="text" 
-            placeholder="Cari Nama / Uraian / Kode / SKPD..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-            className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
-          />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+              <Filter size={12} /> Filter Sub Kegiatan
+            </label>
+            <select 
+              value={selectedSubKegiatan}
+              onChange={(e) => setSelectedSubKegiatan(e.target.value)}
+              className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
+            >
+              <option value="all">Semua Sub Kegiatan</option>
+              {subKegiatanList.map((sk, i) => (
+                <option key={i} value={sk}>{sk}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+              <Filter size={12} /> Filter Jenis Belanja
+            </label>
+            <select 
+              value={selectedBelanja}
+              onChange={(e) => setSelectedBelanja(e.target.value)}
+              className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
+            >
+              <option value="all">Semua Jenis Belanja</option>
+              {belanjaList.map((b, i) => (
+                <option key={i} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
