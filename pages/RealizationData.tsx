@@ -14,11 +14,25 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
+  const parseNumber = (val: any): number => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return val;
+    const cleaned = String(val).replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.-]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
   const findValue = (row: any, keywords: string[]) => {
     const keys = Object.keys(row);
     for (const key of keys) {
       const normalizedKey = key.toLowerCase().trim();
-      if (keywords.some(kw => normalizedKey === kw.toLowerCase() || normalizedKey.includes(kw.toLowerCase()))) {
+      if (keywords.some(kw => normalizedKey === kw.toLowerCase())) {
+        return row[key];
+      }
+    }
+    for (const key of keys) {
+      const normalizedKey = key.toLowerCase().trim();
+      if (keywords.some(kw => normalizedKey.includes(kw.toLowerCase()))) {
         return row[key];
       }
     }
@@ -41,17 +55,17 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
 
         const formattedData: RealizationData[] = jsonData.map((row, index) => ({
           id: `realization-${Date.now()}-${index}`,
-          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja']) || '').trim(),
+          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
           kode_skpd: String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim(),
           program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
           kode_program: String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim(),
           kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
           kode_kegiatan: String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim(),
-          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan']) || '').trim(),
+          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
           kode_sub_kegiatan: String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim(),
-          belanja: String(findValue(row, ['Belanja', 'Uraian', 'Nama Belanja']) || '').trim(),
-          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening']) || '').trim(),
-          realisasi: Number(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']) || 0),
+          belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim(),
+          realisasi: parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi'])),
         }));
 
         setData([...data, ...formattedData]);

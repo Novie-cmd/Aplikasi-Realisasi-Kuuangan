@@ -15,11 +15,28 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MasterData | null>(null);
 
+  const parseNumber = (val: any): number => {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return val;
+    // Clean string: remove dots (thousand separators), replace comma with dot (decimal), remove non-numeric except minus and dot
+    const cleaned = String(val).replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.-]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
   const findValue = (row: any, keywords: string[]) => {
     const keys = Object.keys(row);
+    // Priority 1: Exact match (case insensitive)
     for (const key of keys) {
       const normalizedKey = key.toLowerCase().trim();
-      if (keywords.some(kw => normalizedKey === kw.toLowerCase() || normalizedKey.includes(kw.toLowerCase()))) {
+      if (keywords.some(kw => normalizedKey === kw.toLowerCase())) {
+        return row[key];
+      }
+    }
+    // Priority 2: Partial match
+    for (const key of keys) {
+      const normalizedKey = key.toLowerCase().trim();
+      if (keywords.some(kw => normalizedKey.includes(kw.toLowerCase()))) {
         return row[key];
       }
     }
@@ -42,19 +59,19 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
 
         const formattedData: MasterData[] = jsonData.map((row, index) => ({
           id: `master-${Date.now()}-${index}`,
-          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja']) || '').trim(),
+          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
           kode_skpd: String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim(),
           program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
           kode_program: String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim(),
           kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
           kode_kegiatan: String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim(),
-          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan']) || '').trim(),
+          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
           kode_sub_kegiatan: String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim(),
-          belanja: String(findValue(row, ['Belanja', 'Uraian', 'Nama Belanja']) || '').trim(),
-          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening']) || '').trim(),
-          anggaran: Number(findValue(row, ['Anggaran', 'Pagu', 'Nilai Anggaran']) || 0),
+          belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim(),
+          anggaran: parseNumber(findValue(row, ['Anggaran', 'Pagu', 'Nilai Anggaran', 'Pagu Anggaran', 'Pagu_Anggaran'])),
           realisasi: 0,
-          pagu_spd: Number(findValue(row, ['SPD', 'Pagu SPD', 'Pagu_SPD']) || 0),
+          pagu_spd: parseNumber(findValue(row, ['SPD', 'Pagu SPD', 'Pagu_SPD', 'Nilai SPD', 'Nilai_SPD'])),
         }));
 
         setData([...data, ...formattedData]);
