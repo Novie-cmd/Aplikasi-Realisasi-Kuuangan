@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData } from '../types';
+import SearchableSelect from '../components/SearchableSelect';
 
 interface Props {
   masterData: MasterData[];
@@ -210,36 +211,20 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-              <Filter size={12} /> Filter Sub Kegiatan
-            </label>
-            <select 
-              value={selectedSubKegiatan}
-              onChange={(e) => setSelectedSubKegiatan(e.target.value)}
-              className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
-            >
-              <option value="all">Semua Sub Kegiatan</option>
-              {subKegiatanList.map((sk, i) => (
-                <option key={i} value={sk}>{sk}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-              <Filter size={12} /> Filter Jenis Belanja
-            </label>
-            <select 
-              value={selectedBelanja}
-              onChange={(e) => setSelectedBelanja(e.target.value)}
-              className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
-            >
-              <option value="all">Semua Jenis Belanja</option>
-              {belanjaList.map((b, i) => (
-                <option key={i} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
+          <SearchableSelect 
+            label="Sub Kegiatan"
+            options={subKegiatanList}
+            value={selectedSubKegiatan}
+            onChange={setSelectedSubKegiatan}
+            placeholder="Cari Sub Kegiatan..."
+          />
+          <SearchableSelect 
+            label="Jenis Belanja"
+            options={belanjaList}
+            value={selectedBelanja}
+            onChange={setSelectedBelanja}
+            placeholder="Cari Jenis Belanja..."
+          />
         </div>
       </div>
 
