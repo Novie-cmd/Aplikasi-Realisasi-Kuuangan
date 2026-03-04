@@ -123,6 +123,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
@@ -142,6 +143,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.sub_kegiatan}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
