@@ -86,6 +86,12 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
     }
   };
 
+  const deleteRow = (id: string) => {
+    if (window.confirm('Hapus baris realisasi ini?')) {
+      setData(data.filter(item => item.id !== id));
+    }
+  };
+
   const formatIDR = (val: number) => new Intl.NumberFormat('id-ID').format(val);
 
   return (
@@ -112,20 +118,32 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
         <table className="w-full text-left min-w-[1200px]">
           <thead className="bg-gray-50 border-b">
             <tr>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Uraian Belanja</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {data.filter(i => i.skpd.toLowerCase().includes(searchTerm.toLowerCase())).map((row) => (
+            {data.filter(i => 
+              i.skpd.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              i.belanja.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              i.kode_belanja.includes(searchTerm)
+            ).map((row) => (
               <tr key={row.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.skpd}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[250px]">{row.sub_kegiatan}</td>
+                <td className="px-4 py-3">
+                  <button onClick={() => deleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                </td>
+                <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
-                <td className="px-4 py-3 text-sm font-bold text-indigo-700">{row.belanja}</td>
+                <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
               </tr>
             ))}
