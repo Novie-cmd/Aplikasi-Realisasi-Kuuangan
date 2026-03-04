@@ -128,7 +128,9 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
               <div className="grid grid-cols-2 gap-4">
                 <input className="border p-2 rounded" placeholder="SKPD" value={editingItem.skpd} onChange={e => setEditingItem({...editingItem, skpd: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Kode SKPD" value={editingItem.kode_skpd} onChange={e => setEditingItem({...editingItem, kode_skpd: e.target.value})} />
-                <input className="border p-2 rounded col-span-2" placeholder="Sub Kegiatan" value={editingItem.sub_kegiatan} onChange={e => setEditingItem({...editingItem, sub_kegiatan: e.target.value})} />
+                <input className="border p-2 rounded col-span-2" placeholder="Kegiatan" value={editingItem.kegiatan} onChange={e => setEditingItem({...editingItem, kegiatan: e.target.value})} />
+                <input className="border p-2 rounded" placeholder="Kode Sub Kegiatan" value={editingItem.kode_sub_kegiatan} onChange={e => setEditingItem({...editingItem, kode_sub_kegiatan: e.target.value})} />
+                <input className="border p-2 rounded" placeholder="Sub Kegiatan" value={editingItem.sub_kegiatan} onChange={e => setEditingItem({...editingItem, sub_kegiatan: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Kode Belanja" value={editingItem.kode_belanja} onChange={e => setEditingItem({...editingItem, kode_belanja: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Uraian" value={editingItem.belanja} onChange={e => setEditingItem({...editingItem, belanja: e.target.value})} />
                 <input className="border p-2 rounded" type="number" placeholder="Anggaran" value={editingItem.anggaran} onChange={e => setEditingItem({...editingItem, anggaran: Number(e.target.value)})} />
@@ -167,6 +169,8 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Uraian</th>
@@ -185,6 +189,8 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
                 </td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.sub_kegiatan}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
