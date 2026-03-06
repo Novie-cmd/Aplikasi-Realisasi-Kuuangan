@@ -52,6 +52,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       name: string; 
       parentName?: string;
       kode: string;
+      kode_sub_kegiatan?: string;
       anggaran: number; 
       pagu_spd: number;
       realisasi: number;
@@ -93,6 +94,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         aggregated[key] = { 
           name, 
           kode, 
+          kode_sub_kegiatan: m.kode_sub_kegiatan,
           parentName, 
           anggaran: 0, 
           pagu_spd: 0, 
@@ -131,6 +133,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       aggregated[unmappedKey] = {
         name: original?.belanja || 'Kode Belanja Tidak Terdaftar di Master',
         kode: original?.kode_belanja || '?',
+        kode_sub_kegiatan: original?.kode_sub_kegiatan,
         parentName: 'DATA TIDAK TERPETAKAN (ANOMALI)',
         anggaran: 0,
         pagu_spd: 0,
@@ -233,6 +236,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
           <thead className="bg-gray-50/50 border-b">
             <tr>
               <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">SKPD</th>
+              {level === 'sub_kegiatan' && (
+                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode SubKeg</th>
+              )}
               <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Uraian / Kode</th>
               <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
               <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">SPD</th>
@@ -251,6 +257,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
               return (
                 <tr key={idx} className={`hover:bg-gray-50 transition-colors ${row.isUnmapped ? 'bg-red-50/30' : ''}`}>
                   <td className="px-6 py-4 text-xs font-bold text-gray-500">{row.skpd}</td>
+                  {level === 'sub_kegiatan' && (
+                    <td className="px-6 py-4 text-[10px] font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
+                  )}
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5 mb-0.5">
@@ -283,7 +292,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
             
             {/* Table Footer / Total */}
             <tr className="bg-gray-900 text-white font-black">
-              <td className="px-6 py-5 text-sm uppercase tracking-widest" colSpan={2}>Total Seluruhnya</td>
+              <td className="px-6 py-5 text-sm uppercase tracking-widest" colSpan={level === 'sub_kegiatan' ? 3 : 2}>Total Seluruhnya</td>
               <td className="px-6 py-5 text-sm text-right">{formatIDR(totals.anggaran)}</td>
               <td className="px-6 py-5 text-sm text-right text-blue-300">{formatIDR(totals.spd)}</td>
               <td className="px-6 py-5 text-sm text-right text-emerald-300">{formatIDR(totals.realisasi)}</td>
