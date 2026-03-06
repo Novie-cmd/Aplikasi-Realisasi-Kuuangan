@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle } from 'lucide-react';
+import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -151,6 +151,14 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
     );
   }, [masterData, realizationData, level, searchTerm, selectedSubKegiatan, selectedBelanja]);
 
+  const validationAlerts = useMemo(() => {
+    const alerts = reportData.filter(item => item.realisasi > item.pagu_spd);
+    return {
+      count: alerts.length,
+      totalOver: alerts.reduce((acc, curr) => acc + (curr.realisasi - curr.pagu_spd), 0)
+    };
+  }, [reportData]);
+
   const totals = useMemo(() => {
     return reportData.reduce((acc, curr) => {
       acc.anggaran += curr.anggaran;
@@ -187,6 +195,24 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
           </p>
         </div>
       </div>
+
+      {validationAlerts.count > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm animate-in slide-in-from-top duration-500">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-red-100 text-red-600 rounded-full">
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-red-800 uppercase tracking-tight">Peringatan Validasi Anggaran</h4>
+              <p className="text-xs text-red-700 mt-1">
+                Ditemukan <b>{validationAlerts.count} item</b> dengan realisasi yang <b>melampaui Pagu SPD</b>. 
+                Total kelebihan realisasi: <span className="font-bold underline">{formatIDR(validationAlerts.totalOver)}</span>
+              </p>
+              <p className="text-[10px] text-red-600 mt-2 italic">* Segera periksa data master atau transaksi realisasi untuk menyesuaikan pagu.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -252,10 +278,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
             {reportData.map((row, idx) => {
               const sisaSpd = row.pagu_spd - row.realisasi;
               const sisaAnggaran = row.anggaran - row.realisasi;
+              const isOverSpd = row.realisasi > row.pagu_spd;
               const percent = row.anggaran > 0 ? (row.realisasi / row.anggaran) * 100 : 0;
               
               return (
-                <tr key={idx} className={`hover:bg-gray-50 transition-colors ${row.isUnmapped ? 'bg-red-50/30' : ''}`}>
+                <tr key={idx} className={`hover:bg-gray-50 transition-colors ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/50' : ''}`}>
                   <td className="px-6 py-4 text-xs font-bold text-gray-500">{row.skpd}</td>
                   {level === 'sub_kegiatan' && (
                     <td className="px-6 py-4 text-[10px] font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
@@ -265,6 +292,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="text-[10px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{row.kode}</span>
                         {row.isUnmapped && <span className="bg-red-100 text-red-700 text-[8px] px-1 rounded font-bold uppercase flex items-center gap-1"><AlertTriangle size={8}/> Anomali</span>}
+                        {isOverSpd && <span className="bg-orange-100 text-orange-700 text-[8px] px-1 rounded font-bold uppercase flex items-center gap-1"><AlertCircle size={8}/> Melampaui SPD</span>}
                       </div>
                       <p className="text-sm font-bold text-gray-800 leading-tight">{row.name}</p>
                       {row.parentName && <p className="text-[9px] text-gray-400 mt-1 uppercase font-medium">{row.parentName}</p>}
@@ -273,7 +301,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                   <td className="px-6 py-4 text-sm font-bold text-right text-gray-700">{formatIDR(row.anggaran)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{formatIDR(row.pagu_spd)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-right text-amber-600">{formatIDR(sisaSpd)}</td>
+                  <td className={`px-6 py-4 text-sm font-bold text-right ${sisaSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'}`}>{formatIDR(sisaSpd)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-red-500">{formatIDR(sisaAnggaran)}</td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex flex-col items-center gap-1">
