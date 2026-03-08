@@ -121,6 +121,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
@@ -133,6 +134,9 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
             {data.filter(i => 
               i.skpd.toLowerCase().includes(searchTerm.toLowerCase()) ||
               i.belanja.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              i.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              i.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              i.kode_kegiatan.includes(searchTerm) ||
               i.kode_belanja.includes(searchTerm)
             ).map((row) => (
               <tr key={row.id} className="hover:bg-gray-50">
@@ -141,6 +145,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
                 </td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
+                <td className="px-4 py-3 text-sm font-mono">{row.kode_kegiatan}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.sub_kegiatan}</td>
