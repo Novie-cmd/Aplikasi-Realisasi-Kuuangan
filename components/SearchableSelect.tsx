@@ -13,9 +13,10 @@ interface Props {
   onChange: (value: string) => void;
   placeholder: string;
   label: string;
+  showAll?: boolean;
 }
 
-const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placeholder, label }) => {
+const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placeholder, label, showAll = true }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,7 +25,7 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
     option.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedLabel = value === 'all' ? `Semua ${label}` : value;
+  const selectedLabel = value === 'all' ? `Semua ${label}` : (value || placeholder);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,7 +46,7 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 cursor-pointer flex items-center justify-between"
       >
-        <span className={value === 'all' ? 'text-gray-400' : 'text-gray-900 font-medium truncate'}>
+        <span className={(!value || value === 'all') ? 'text-gray-400' : 'text-gray-900 font-medium truncate'}>
           {selectedLabel}
         </span>
         <ChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -71,17 +72,19 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
             )}
           </div>
           <div className="max-h-60 overflow-y-auto">
-            <div
-              onClick={() => {
-                onChange('all');
-                setIsOpen(false);
-                setSearchTerm('');
-              }}
-              className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-indigo-50 ${value === 'all' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-gray-700'}`}
-            >
-              Semua {label}
-              {value === 'all' && <Check size={14} />}
-            </div>
+            {showAll && (
+              <div
+                onClick={() => {
+                  onChange('all');
+                  setIsOpen(false);
+                  setSearchTerm('');
+                }}
+                className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-indigo-50 ${value === 'all' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-gray-700'}`}
+              >
+                Semua {label}
+                {value === 'all' && <Check size={14} />}
+              </div>
+            )}
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, i) => (
                 <div

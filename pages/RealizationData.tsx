@@ -1,18 +1,109 @@
 
-import React, { useRef, useState } from 'react';
-import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign } from 'lucide-react';
+import React, { useRef, useState, useMemo } from 'react';
+import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { RealizationData } from '../types';
+import { RealizationData, MasterData } from '../types';
+import SearchableSelect from '../components/SearchableSelect';
 
 interface Props {
   data: RealizationData[];
   setData: (data: RealizationData[]) => void;
+  masterData: MasterData[];
 }
 
-const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
+const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    sub_kegiatan: '',
+    kode_sub_kegiatan: '',
+    belanja: '',
+    kode_belanja: '',
+    realisasi: 0
+  });
+
+  const subKegiatanOptions = useMemo(() => {
+    return Array.from(new Set(masterData.map(m => m.sub_kegiatan))).sort();
+  }, [masterData]);
+
+  const belanjaOptions = useMemo(() => {
+    if (!formData.sub_kegiatan) return [];
+    return Array.from(new Set(
+      masterData
+        .filter(m => m.sub_kegiatan === formData.sub_kegiatan)
+        .map(m => m.belanja)
+    )).sort();
+  }, [masterData, formData.sub_kegiatan]);
+
+  const handleSubKegiatanChange = (val: string) => {
+    const match = masterData.find(m => m.sub_kegiatan === val);
+    setFormData({
+      ...formData,
+      sub_kegiatan: val,
+      kode_sub_kegiatan: match ? match.kode_sub_kegiatan : '',
+      belanja: '',
+      kode_belanja: ''
+    });
+  };
+
+  const handleBelanjaChange = (val: string) => {
+    const match = masterData.find(m => 
+      m.sub_kegiatan === formData.sub_kegiatan && 
+      m.belanja === val
+    );
+    setFormData({
+      ...formData,
+      belanja: val,
+      kode_belanja: match ? match.kode_belanja : ''
+    });
+  };
+
+  const handleAddManual = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.sub_kegiatan || !formData.belanja || formData.realisasi <= 0) {
+      alert('Mohon lengkapi semua field dan pastikan realisasi lebih dari 0');
+      return;
+    }
+
+    const match = masterData.find(m => 
+      m.sub_kegiatan === formData.sub_kegiatan && 
+      m.belanja === formData.belanja
+    );
+
+    if (!match) {
+      alert('Data tidak ditemukan di Master Data');
+      return;
+    }
+
+    const newItem: RealizationData = {
+      id: `realization-${Date.now()}`,
+      skpd: match.skpd,
+      kode_skpd: match.kode_skpd,
+      program: match.program,
+      kode_program: match.kode_program,
+      kegiatan: match.kegiatan,
+      kode_kegiatan: match.kode_kegiatan,
+      sub_kegiatan: match.sub_kegiatan,
+      kode_sub_kegiatan: match.kode_sub_kegiatan,
+      belanja: match.belanja,
+      kode_belanja: match.kode_belanja,
+      realisasi: formData.realisasi
+    };
+
+    setData([newItem, ...data]);
+    setFormData({
+      sub_kegiatan: '',
+      kode_sub_kegiatan: '',
+      belanja: '',
+      kode_belanja: '',
+      realisasi: 0
+    });
+    setShowForm(false);
+  };
 
   const parseNumber = (val: any): number => {
     if (val === null || val === undefined || val === '') return 0;
@@ -99,14 +190,83 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData }) => {
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>
-          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"><Upload size={18} /> Import Realisasi</button>
-          <button onClick={clearData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2"><Trash2 size={18} /> Hapus Semua</button>
+          <button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition-colors">
+            <Plus size={18} /> {showForm ? 'Tutup Form' : 'Input Manual'}
+          </button>
+          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors"><Upload size={18} /> Import Realisasi</button>
+          <button onClick={clearData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors"><Trash2 size={18} /> Hapus Semua</button>
         </div>
         <div className="relative w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none" />
+          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
       </div>
+
+      {showForm && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 animate-in slide-in-from-top duration-300">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Plus className="text-emerald-600" size={20} /> Input Realisasi Manual
+          </h3>
+          <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sub Kegiatan</label>
+              <select 
+                value={formData.sub_kegiatan}
+                onChange={(e) => handleSubKegiatanChange(e.target.value)}
+                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
+              >
+                <option value="">Pilih Sub Kegiatan</option>
+                {subKegiatanOptions.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Sub Kegiatan</label>
+              <input 
+                type="text" 
+                value={formData.kode_sub_kegiatan}
+                readOnly
+                className="w-full p-2 border rounded-xl text-sm bg-gray-100 text-gray-500 outline-none"
+                placeholder="Otomatis..."
+              />
+            </div>
+
+            <SearchableSelect 
+              label="Belanja"
+              placeholder="Pilih Belanja"
+              options={belanjaOptions}
+              value={formData.belanja}
+              onChange={handleBelanjaChange}
+              showAll={false}
+            />
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                <input 
+                  type="number" 
+                  value={formData.realisasi || ''}
+                  onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
+                  className="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-emerald-600"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 flex justify-end">
+              <button 
+                type="submit"
+                className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
+              >
+                <Save size={18} /> Simpan Realisasi
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {importStatus && (
         <div className={`p-4 rounded-lg text-sm font-medium ${importStatus.includes('Berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>

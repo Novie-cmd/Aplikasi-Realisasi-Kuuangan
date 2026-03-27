@@ -213,7 +213,7 @@ const App: React.FC = () => {
         <div className="p-6 md:p-8">
           {activePage === 'dashboard' && <Dashboard masterData={masterData} realizationData={realizationData} spendingData={spendingData} />}
           {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} />}
-          {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} />}
+          {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} masterData={masterData} />}
           {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
           {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} />}
         </div>
