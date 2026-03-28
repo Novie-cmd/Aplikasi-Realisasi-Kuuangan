@@ -44,7 +44,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
     // Ini adalah kunci paling unik untuk mencocokkan realisasi ke budget line
     const realizationMap: Record<string, number> = {};
     realizationData.forEach(r => {
-      const rKey = `${clean(r.skpd)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+      const rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
       realizationMap[rKey] = (realizationMap[rKey] || 0) + (Number(r.realisasi) || 0);
     });
 
@@ -74,17 +74,17 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
       // Tentukan kunci agregasi berdasarkan level yang dipilih
       if (level === 'program') {
-        key = `${skpdClean}|${clean(m.program)}`;
+        key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}`;
         name = m.program;
         kode = m.kode_program;
       } else if (level === 'kegiatan') {
-        key = `${skpdClean}|${clean(m.kode_kegiatan)}`;
+        key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}`;
         name = m.kegiatan;
         kode = m.kode_kegiatan;
         parentName = m.program;
       } else {
         // Level Sub Kegiatan / Rincian Belanja
-        key = `${skpdClean}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
+        key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
         name = m.belanja;
         kode = m.kode_belanja;
         parentName = m.sub_kegiatan;
@@ -108,7 +108,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       aggregated[key].pagu_spd += Number(m.pagu_spd) || 0;
 
       // Cari apakah ada realisasi untuk item master ini
-      const mKey = `${clean(m.skpd)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
+      const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
       if (realizationMap[mKey]) {
         aggregated[key].realisasi += realizationMap[mKey];
         // Hapus dari map agar kita tahu data mana yang belum terpetakan di akhir
@@ -123,7 +123,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       const unmappedKey = `unmapped|${rKey}`;
       
       // Cari data asli untuk mendapatkan nama belanja
-      const original = realizationData.find(rd => `${clean(rd.skpd)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === rKey);
+      const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === rKey);
 
       // Filter anomali juga jika filter belanja aktif
       if (selectedBelanja !== 'all' && original?.belanja !== selectedBelanja) return;
@@ -191,7 +191,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><Info size={20} /></div>
           <p className="text-[10px] text-amber-800 leading-tight font-medium">
-            Sistem mencocokkan data berdasarkan <b>SKPD + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
+            Sistem mencocokkan data berdasarkan <b>Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
           </p>
         </div>
       </div>

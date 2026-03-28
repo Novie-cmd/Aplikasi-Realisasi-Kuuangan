@@ -15,13 +15,21 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
-  const clean = (val: any) => (val || '').toString().toLowerCase().trim();
+  // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
+  const clean = (val: any): string => {
+    if (val === null || val === undefined) return '';
+    return val.toString()
+      .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '') // Hapus zero-width & non-breaking spaces
+      .replace(/\s+/g, ' ') // Ubah multiple space jadi single space
+      .trim()
+      .toLowerCase();
+  };
 
   const stats = useMemo(() => {
-    // 1. Buat map realisasi per SKPD + Kode Belanja
+    // 1. Buat map realisasi per SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja
     const realizationMap: Record<string, number> = {};
     realizationData.forEach(r => {
-      const key = `${clean(r.skpd)}|${clean(r.kode_belanja)}`;
+      const key = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
@@ -31,7 +39,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     // 2. Hitung dari Master (Anggaran) dan tambahkan realisasi yang cocok
     masterData.forEach(m => {
       totalAnggaran += (Number(m.anggaran) || 0);
-      const mKey = `${clean(m.skpd)}|${clean(m.kode_belanja)}`;
+      const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
       if (realizationMap[mKey]) {
         totalRealisasi += realizationMap[mKey];
         delete realizationMap[mKey]; // Tandai sudah terhitung
@@ -57,7 +65,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     // Mapping realisasi per kode belanja
     const realizationMap: Record<string, number> = {};
     realizationData.forEach(r => {
-      const key = `${clean(r.skpd)}|${clean(r.kode_belanja)}`;
+      const key = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
@@ -65,7 +73,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       if (!groups[m.skpd]) groups[m.skpd] = { name: m.skpd, anggaran: 0, realisasi: 0 };
       groups[m.skpd].anggaran += Number(m.anggaran) || 0;
       
-      const mKey = `${clean(m.skpd)}|${clean(m.kode_belanja)}`;
+      const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
       if (realizationMap[mKey]) {
         groups[m.skpd].realisasi += realizationMap[mKey];
         delete realizationMap[mKey];
@@ -75,7 +83,8 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
 
     // Tambahkan realisasi anomali ke SKPD terkait di chart
     Object.entries(realizationMap).forEach(([key, val]) => {
-      const skpdNameRaw = realizationData.find(rd => `${clean(rd.skpd)}|${clean(rd.kode_belanja)}` === key)?.skpd || 'LAINNYA';
+      const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === key);
+      const skpdNameRaw = original?.skpd || 'LAINNYA';
       if (!groups[skpdNameRaw]) groups[skpdNameRaw] = { name: skpdNameRaw, anggaran: 0, realisasi: 0 };
       groups[skpdNameRaw].realisasi += val;
     });
