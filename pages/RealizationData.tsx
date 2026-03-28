@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo } from 'react';
-import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save } from 'lucide-react';
+import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RealizationData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -16,6 +16,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -79,22 +80,71 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
       return;
     }
 
-    const newItem: RealizationData = {
-      id: `realization-${Date.now()}`,
-      skpd: match.skpd,
-      kode_skpd: match.kode_skpd,
-      program: match.program,
-      kode_program: match.kode_program,
-      kegiatan: match.kegiatan,
-      kode_kegiatan: match.kode_kegiatan,
-      sub_kegiatan: match.sub_kegiatan,
-      kode_sub_kegiatan: match.kode_sub_kegiatan,
-      belanja: match.belanja,
-      kode_belanja: match.kode_belanja,
-      realisasi: formData.realisasi
-    };
+    if (editingId) {
+      const updatedData = data.map(item => {
+        if (item.id === editingId) {
+          return {
+            ...item,
+            skpd: match.skpd,
+            kode_skpd: match.kode_skpd,
+            program: match.program,
+            kode_program: match.kode_program,
+            kegiatan: match.kegiatan,
+            kode_kegiatan: match.kode_kegiatan,
+            sub_kegiatan: match.sub_kegiatan,
+            kode_sub_kegiatan: match.kode_sub_kegiatan,
+            belanja: match.belanja,
+            kode_belanja: match.kode_belanja,
+            realisasi: formData.realisasi
+          };
+        }
+        return item;
+      });
+      setData(updatedData);
+      setEditingId(null);
+    } else {
+      const newItem: RealizationData = {
+        id: `realization-${Date.now()}`,
+        skpd: match.skpd,
+        kode_skpd: match.kode_skpd,
+        program: match.program,
+        kode_program: match.kode_program,
+        kegiatan: match.kegiatan,
+        kode_kegiatan: match.kode_kegiatan,
+        sub_kegiatan: match.sub_kegiatan,
+        kode_sub_kegiatan: match.kode_sub_kegiatan,
+        belanja: match.belanja,
+        kode_belanja: match.kode_belanja,
+        realisasi: formData.realisasi
+      };
+      setData([newItem, ...data]);
+    }
 
-    setData([newItem, ...data]);
+    setFormData({
+      sub_kegiatan: '',
+      kode_sub_kegiatan: '',
+      belanja: '',
+      kode_belanja: '',
+      realisasi: 0
+    });
+    setShowForm(false);
+  };
+
+  const startEdit = (row: RealizationData) => {
+    setFormData({
+      sub_kegiatan: row.sub_kegiatan,
+      kode_sub_kegiatan: row.kode_sub_kegiatan,
+      belanja: row.belanja,
+      kode_belanja: row.kode_belanja,
+      realisasi: row.realisasi
+    });
+    setEditingId(row.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
     setFormData({
       sub_kegiatan: '',
       kode_sub_kegiatan: '',
@@ -204,9 +254,15 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
 
       {showForm && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 animate-in slide-in-from-top duration-300">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Plus className="text-emerald-600" size={20} /> Input Realisasi Manual
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              {editingId ? <Edit2 className="text-indigo-600" size={20} /> : <Plus className="text-emerald-600" size={20} />}
+              {editingId ? 'Edit Realisasi' : 'Input Realisasi Manual'}
+            </h3>
+            <button onClick={cancelEdit} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+              <CloseIcon size={20} />
+            </button>
+          </div>
           <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sub Kegiatan</label>
@@ -301,7 +357,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
             ).map((row) => (
               <tr key={row.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
-                  <button onClick={() => deleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => startEdit(row)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title="Edit"><Edit2 size={14} /></button>
+                    <button onClick={() => deleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Hapus"><Trash2 size={14} /></button>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
