@@ -1,83 +1,160 @@
 
 import { MasterData, RealizationData, ExpenditureData } from "../types";
-import { apiRequest } from "./api";
+import { db, auth } from "../firebase";
+import { 
+  collection, 
+  getDocs, 
+  setDoc, 
+  doc, 
+  writeBatch, 
+  query, 
+  limit, 
+  getDocsFromServer 
+} from "firebase/firestore";
 
 /**
- * Hybrid Data Service
- * Mencoba koneksi ke Server (Cloud), jika gagal atau belum dikonfigurasi, gunakan LocalStorage.
+ * Firestore Data Service
+ * Menyimpan data ke Google Cloud Firestore untuk sinkronisasi terpusat.
  */
 
-const STORAGE_KEYS = {
-  MASTER: 'finrealize_master_data',
-  REALIZATION: 'finrealize_realization_data',
-  SPENDING: 'finrealize_spending_data'
-};
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export const DataService = {
+  // Test connection
+  async testConnection() {
+    try {
+      await getDocsFromServer(query(collection(db, 'master_data'), limit(1)));
+    } catch (error) {
+      if(error instanceof Error && error.message.includes('the client is offline')) {
+        console.error("Please check your Firebase configuration. ");
+      }
+    }
+  },
+
   // --- MASTER DATA ---
   async getMasterData(): Promise<MasterData[]> {
+    const path = 'master_data';
     try {
-      const remoteData = await apiRequest('/master_data?select=*');
-      if (remoteData && Array.isArray(remoteData)) return remoteData;
+      const snapshot = await getDocs(collection(db, path));
+      return snapshot.docs.map(doc => doc.data() as MasterData);
     } catch (e) {
-      console.warn("Gagal mengambil data master dari cloud, mengambil dari lokal.");
+      handleFirestoreError(e, OperationType.GET, path);
+      return [];
     }
-
-    const saved = localStorage.getItem(STORAGE_KEYS.MASTER);
-    return saved ? JSON.parse(saved) : [];
   },
 
   async saveMasterData(data: MasterData[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.MASTER, JSON.stringify(data));
-    // Percobaan sinkronisasi ke cloud jika API aktif
-    await apiRequest('/master_data', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Prefer': 'resolution=merge-duplicates' }
-    }).catch(() => null); // Silent fail untuk sinkronisasi cloud
+    const path = 'master_data';
+    try {
+      const batch = writeBatch(db);
+      data.forEach(item => {
+        const docRef = doc(db, path, item.id);
+        batch.set(docRef, item);
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
   },
 
   // --- REALIZATION DATA ---
   async getRealizationData(): Promise<RealizationData[]> {
+    const path = 'realization_data';
     try {
-      const remoteData = await apiRequest('/realization_data?select=*');
-      if (remoteData && Array.isArray(remoteData)) return remoteData;
+      const snapshot = await getDocs(collection(db, path));
+      return snapshot.docs.map(doc => doc.data() as RealizationData);
     } catch (e) {
-      console.warn("Gagal mengambil data realisasi dari cloud.");
+      handleFirestoreError(e, OperationType.GET, path);
+      return [];
     }
-
-    const saved = localStorage.getItem(STORAGE_KEYS.REALIZATION);
-    return saved ? JSON.parse(saved) : [];
   },
 
   async saveRealizationData(data: RealizationData[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.REALIZATION, JSON.stringify(data));
-    await apiRequest('/realization_data', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Prefer': 'resolution=merge-duplicates' }
-    }).catch(() => null);
+    const path = 'realization_data';
+    try {
+      const batch = writeBatch(db);
+      data.forEach(item => {
+        const docRef = doc(db, path, item.id);
+        batch.set(docRef, item);
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
   },
 
   // --- SPENDING DATA ---
   async getSpendingData(): Promise<ExpenditureData[]> {
+    const path = 'spending_data';
     try {
-      const remoteData = await apiRequest('/spending_data?select=*');
-      if (remoteData && Array.isArray(remoteData)) return remoteData;
+      const snapshot = await getDocs(collection(db, path));
+      return snapshot.docs.map(doc => doc.data() as ExpenditureData);
     } catch (e) {
-      console.warn("Gagal mengambil data belanja dari cloud.");
+      handleFirestoreError(e, OperationType.GET, path);
+      return [];
     }
-
-    const saved = localStorage.getItem(STORAGE_KEYS.SPENDING);
-    return saved ? JSON.parse(saved) : [];
   },
 
   async saveSpendingData(data: ExpenditureData[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.SPENDING, JSON.stringify(data));
-    await apiRequest('/spending_data', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Prefer': 'resolution=merge-duplicates' }
-    }).catch(() => null);
+    const path = 'spending_data';
+    try {
+      const batch = writeBatch(db);
+      data.forEach(item => {
+        const docRef = doc(db, path, item.id);
+        batch.set(docRef, item);
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
   }
 };

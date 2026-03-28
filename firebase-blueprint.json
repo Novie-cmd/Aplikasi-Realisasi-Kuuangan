@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "MasterData": {
+      "title": "Master Data",
+      "description": "Master budget lines and allocations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "skpd": { "type": "string" },
+        "kode_skpd": { "type": "string" },
+        "program": { "type": "string" },
+        "kode_program": { "type": "string" },
+        "kegiatan": { "type": "string" },
+        "kode_kegiatan": { "type": "string" },
+        "sub_kegiatan": { "type": "string" },
+        "kode_sub_kegiatan": { "type": "string" },
+        "belanja": { "type": "string" },
+        "kode_belanja": { "type": "string" },
+        "anggaran": { "type": "number" },
+        "realisasi": { "type": "number" },
+        "pagu_spd": { "type": "number" }
+      },
+      "required": ["id", "skpd", "kode_skpd", "kode_belanja", "anggaran"]
+    },
+    "RealizationData": {
+      "title": "Realization Data",
+      "description": "Actual spending transactions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "skpd": { "type": "string" },
+        "kode_skpd": { "type": "string" },
+        "program": { "type": "string" },
+        "kode_program": { "type": "string" },
+        "kegiatan": { "type": "string" },
+        "kode_kegiatan": { "type": "string" },
+        "sub_kegiatan": { "type": "string" },
+        "kode_sub_kegiatan": { "type": "string" },
+        "belanja": { "type": "string" },
+        "kode_belanja": { "type": "string" },
+        "realisasi": { "type": "number" }
+      },
+      "required": ["id", "skpd", "kode_skpd", "kode_belanja", "realisasi"]
+    },
+    "ExpenditureData": {
+      "title": "Expenditure Data",
+      "description": "Types of expenditures",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_belanja": { "type": "string" },
+        "belanja": { "type": "string" }
+      },
+      "required": ["id", "kode_belanja", "belanja"]
+    }
+  },
+  "firestore": {
+    "/master_data/{id}": {
+      "schema": "MasterData",
+      "description": "Collection of master budget lines"
+    },
+    "/realization_data/{id}": {
+      "schema": "RealizationData",
+      "description": "Collection of realization transactions"
+    },
+    "/spending_data/{id}": {
+      "schema": "ExpenditureData",
+      "description": "Collection of expenditure types"
+    }
+  }
+}
