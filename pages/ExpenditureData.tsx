@@ -106,7 +106,7 @@ const ExpenditureDataPage: React.FC<Props> = ({ data, setData }) => {
 
       <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="bg-indigo-50/50 border-b border-indigo-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-indigo-900 uppercase tracking-widest w-1/4">
