@@ -93,8 +93,8 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
   }, [masterData, realizationData]);
 
   const pieData = [
-    { name: 'Realisasi', value: stats.totalRealisasi, color: '#10b981' },
-    { name: 'Sisa Anggaran', value: Math.max(0, stats.sisa), color: '#e5e7eb' }
+    { name: 'Realisasi', value: stats.totalRealisasi, color: '#34d399' },
+    { name: 'Sisa Anggaran', value: Math.max(0, stats.sisa), color: '#fbbf24' }
   ];
 
   const formatIDR = (val: number) => 
@@ -168,8 +168,8 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                   formatter={(value: number) => [formatIDR(value), '']}
                 />
                 <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                <Bar dataKey="anggaran" name="Anggaran" fill="#e0e7ff" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="realisasi" name="Realisasi" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="anggaran" name="Anggaran" fill="#818cf8" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="realisasi" name="Realisasi" fill="#34d399" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
