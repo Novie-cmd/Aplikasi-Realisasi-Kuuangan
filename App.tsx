@@ -218,7 +218,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <div className="min-h-screen flex">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 bg-indigo-950 text-white transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+        <aside className={`fixed inset-y-0 left-0 bg-indigo-950 text-white transition-all duration-300 z-50 print:hidden ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
           <div className="flex flex-col h-full">
             <div className="p-6 flex items-center justify-between border-b border-indigo-900">
               {isSidebarOpen && <h1 className="text-xl font-bold tracking-tight">FinRealize <span className="text-[10px] bg-indigo-500 px-1 rounded">CLOUD</span></h1>}
@@ -263,8 +263,8 @@ const App: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
-          <header className="bg-white border-b sticky top-0 z-40 p-4 flex items-center justify-between shadow-sm">
+        <main className={`flex-1 transition-all duration-300 print:ml-0 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+          <header className="bg-white border-b sticky top-0 z-40 p-4 flex items-center justify-between shadow-sm print:hidden">
             <h2 className="text-lg font-bold text-gray-700 capitalize">{activePage}</h2>
             <div className="flex items-center gap-4">
                <div className="text-right hidden md:block">

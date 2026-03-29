@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle } from 'lucide-react';
+import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -170,10 +170,14 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
   const formatIDR = (val: number) => new Intl.NumberFormat('id-ID').format(val);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Statistics & Info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Database size={20} /></div>
           <div>
@@ -197,7 +201,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       </div>
 
       {validationAlerts.count > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm animate-in slide-in-from-top duration-500">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm animate-in slide-in-from-top duration-500 print:hidden">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-red-100 text-red-600 rounded-full">
               <AlertTriangle size={20} />
@@ -214,7 +218,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border">
             {['program', 'kegiatan', 'sub_kegiatan'].map((l) => (
@@ -227,19 +231,28 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
               </button>
             ))}
           </div>
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-            <input 
-              type="text" 
-              placeholder="Cari Nama / Uraian / Kode / SKPD..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
-            />
+          <div className="flex items-center gap-3 flex-1 max-w-2xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+              <input 
+                type="text" 
+                placeholder="Cari Nama / Uraian / Kode / SKPD..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
+              />
+            </div>
+            <button 
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+            >
+              <Printer size={18} />
+              <span>Cetak</span>
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50 print:hidden">
           <SearchableSelect 
             label="Sub Kegiatan"
             options={subKegiatanList}
@@ -257,8 +270,21 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
-        <table className="w-full text-left min-w-[1200px]">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
+        <div className="hidden print:block mb-6 text-center">
+          <h1 className="text-2xl font-black uppercase tracking-tight">Laporan Realisasi Keuangan</h1>
+          <p className="text-sm text-gray-500 mt-1">Level Laporan: {level.replace('_', ' ').toUpperCase()}</p>
+          <div className="mt-4 grid grid-cols-2 gap-4 text-left text-xs border-y py-3">
+            <div>
+              <p><b>Filter Sub Kegiatan:</b> {selectedSubKegiatan === 'all' ? 'Semua' : selectedSubKegiatan}</p>
+              <p><b>Filter Jenis Belanja:</b> {selectedBelanja === 'all' ? 'Semua' : selectedBelanja}</p>
+            </div>
+            <div className="text-right">
+              <p><b>Tanggal Cetak:</b> {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>
+          </div>
+        </div>
+        <table className="w-full text-left min-w-[1200px] print:min-w-0 print:text-[10px]">
           <thead className="bg-gray-50/50 border-b">
             <tr>
               <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">SKPD</th>
@@ -303,9 +329,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                   <td className="px-6 py-4 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
                   <td className={`px-6 py-4 text-sm font-bold text-right ${sisaSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'}`}>{formatIDR(sisaSpd)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-red-500">{formatIDR(sisaAnggaran)}</td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-4 text-center print:px-2">
                     <div className="flex flex-col items-center gap-1">
-                      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden print:hidden">
                         <div 
                           className={`h-full transition-all duration-1000 ${percent >= 100 ? 'bg-emerald-500' : percent >= 80 ? 'bg-indigo-500' : 'bg-amber-500'}`} 
                           style={{ width: `${Math.min(100, percent)}%` }}
