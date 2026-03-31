@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import { Wallet, TrendingUp, CircleDollarSign, Percent, Sparkles, Loader2 } from 'lucide-react';
+import { Wallet, TrendingUp, CircleDollarSign, Percent, Sparkles, Loader2, Coins } from 'lucide-react';
 import { MasterData, ExpenditureData, RealizationData } from '../types';
 import { getFinancialInsights } from '../services/geminiService';
 
@@ -35,10 +35,12 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
 
     let totalAnggaran = 0;
     let totalRealisasi = 0;
+    let totalPaguSpd = 0;
 
     // 2. Hitung dari Master (Anggaran) dan tambahkan realisasi yang cocok
     masterData.forEach(m => {
       totalAnggaran += (Number(m.anggaran) || 0);
+      totalPaguSpd += (Number(m.pagu_spd) || 0);
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
       if (realizationMap[mKey]) {
         totalRealisasi += realizationMap[mKey];
@@ -54,9 +56,10 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     });
 
     const sisa = totalAnggaran - totalRealisasi;
+    const sisaSpd = totalPaguSpd - totalRealisasi;
     const persentase = totalAnggaran > 0 ? (totalRealisasi / totalAnggaran) * 100 : 0;
 
-    return { totalAnggaran, totalRealisasi, sisa, persentase };
+    return { totalAnggaran, totalRealisasi, sisa, sisaSpd, totalPaguSpd, persentase };
   }, [masterData, realizationData]);
 
   const chartData = useMemo(() => {
@@ -109,7 +112,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Wallet size={24} /></div>
@@ -134,6 +137,15 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             <div>
               <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Sisa Anggaran</p>
               <h3 className="text-lg font-bold text-gray-900">{formatIDR(stats.sisa)}</h3>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><Coins size={24} /></div>
+            <div>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">SPD Tersedia</p>
+              <h3 className="text-lg font-bold text-rose-600">{formatIDR(stats.sisaSpd)}</h3>
             </div>
           </div>
         </div>
