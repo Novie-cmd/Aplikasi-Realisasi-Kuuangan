@@ -149,57 +149,106 @@ const App: React.FC = () => {
   const updateMasterData = async (newData: MasterData[]) => {
     setIsSyncing(true);
     setMasterData(newData);
-    await DataService.saveMasterData(newData);
-    setIsSyncing(false);
+    try {
+      await DataService.saveMasterData(newData);
+      // Re-fetch to ensure local state matches server exactly
+      const freshData = await DataService.getMasterData();
+      setMasterData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data master", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const replaceMasterData = async (newData: MasterData[]) => {
     setIsSyncing(true);
     setMasterData(newData);
-    await DataService.syncMasterData(newData);
-    setIsSyncing(false);
+    try {
+      await DataService.syncMasterData(newData);
+      const freshData = await DataService.getMasterData();
+      setMasterData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data master (replace)", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const deleteMasterData = async (id: string) => {
     setIsSyncing(true);
     setMasterData(prev => prev.filter(item => item.id !== id));
-    await DataService.deleteMasterData(id);
-    setIsSyncing(false);
+    try {
+      await DataService.deleteMasterData(id);
+    } catch (err) {
+      console.error("Gagal menghapus data master", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const clearMasterData = async () => {
     setIsSyncing(true);
     setMasterData([]);
-    await DataService.clearMasterData();
-    setIsSyncing(false);
+    try {
+      await DataService.clearMasterData();
+    } catch (err) {
+      console.error("Gagal menghapus semua data master", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const updateRealizationData = async (newData: RealizationData[]) => {
     setIsSyncing(true);
     setRealizationData(newData);
-    await DataService.saveRealizationData(newData);
-    setIsSyncing(false);
+    try {
+      await DataService.saveRealizationData(newData);
+      const freshData = await DataService.getRealizationData();
+      setRealizationData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data realisasi", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const replaceRealizationData = async (newData: RealizationData[]) => {
     setIsSyncing(true);
     setRealizationData(newData);
-    await DataService.syncRealizationData(newData);
-    setIsSyncing(false);
+    try {
+      await DataService.syncRealizationData(newData);
+      const freshData = await DataService.getRealizationData();
+      setRealizationData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data realisasi (replace)", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const deleteRealizationData = async (id: string) => {
     setIsSyncing(true);
     setRealizationData(prev => prev.filter(item => item.id !== id));
-    await DataService.deleteRealizationData(id);
-    setIsSyncing(false);
+    try {
+      await DataService.deleteRealizationData(id);
+    } catch (err) {
+      console.error("Gagal menghapus data realisasi", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const clearRealizationData = async () => {
     setIsSyncing(true);
     setRealizationData([]);
-    await DataService.clearRealizationData();
-    setIsSyncing(false);
+    try {
+      await DataService.clearRealizationData();
+    } catch (err) {
+      console.error("Gagal menghapus semua data realisasi", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const updateSpendingData = async (newData: ExpenditureData[]) => {

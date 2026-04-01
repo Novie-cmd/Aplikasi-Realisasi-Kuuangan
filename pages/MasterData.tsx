@@ -50,12 +50,6 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isReplace = window.confirm(
-      "Apakah Anda ingin MENGGANTI seluruh data master yang ada dengan data dari file ini?\n\n" +
-      "Klik 'OK' untuk Ganti Semua (Membersihkan data lama).\n" +
-      "Klik 'Cancel' untuk Tambah/Update data yang sudah ada."
-    );
-
     setImportStatus('Memproses file master...');
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -94,21 +88,17 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
           };
         });
 
-        if (isReplace) {
-          replaceData(formattedData);
-        } else {
-          // Deduplicate locally before setting state
-          const combinedData = [...data];
-          formattedData.forEach(newItem => {
-            const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
-            if (existingIndex > -1) {
-              combinedData[existingIndex] = newItem;
-            } else {
-              combinedData.push(newItem);
-            }
-          });
-          setData(combinedData);
-        }
+        // Deduplicate locally before setting state
+        const combinedData = [...data];
+        formattedData.forEach(newItem => {
+          const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
+          if (existingIndex > -1) {
+            combinedData[existingIndex] = newItem;
+          } else {
+            combinedData.push(newItem);
+          }
+        });
+        setData(combinedData);
 
         setImportStatus(`Berhasil mengimpor ${formattedData.length} baris data master.`);
         setTimeout(() => setImportStatus(null), 3000);
