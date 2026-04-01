@@ -153,10 +153,38 @@ const App: React.FC = () => {
     setIsSyncing(false);
   };
 
+  const deleteMasterData = async (id: string) => {
+    setIsSyncing(true);
+    setMasterData(prev => prev.filter(item => item.id !== id));
+    await DataService.deleteMasterData(id);
+    setIsSyncing(false);
+  };
+
+  const clearMasterData = async () => {
+    setIsSyncing(true);
+    setMasterData([]);
+    await DataService.clearMasterData();
+    setIsSyncing(false);
+  };
+
   const updateRealizationData = async (newData: RealizationData[]) => {
     setIsSyncing(true);
     setRealizationData(newData);
     await DataService.saveRealizationData(newData);
+    setIsSyncing(false);
+  };
+
+  const deleteRealizationData = async (id: string) => {
+    setIsSyncing(true);
+    setRealizationData(prev => prev.filter(item => item.id !== id));
+    await DataService.deleteRealizationData(id);
+    setIsSyncing(false);
+  };
+
+  const clearRealizationData = async () => {
+    setIsSyncing(true);
+    setRealizationData([]);
+    await DataService.clearRealizationData();
     setIsSyncing(false);
   };
 
@@ -279,8 +307,8 @@ const App: React.FC = () => {
 
           <div className="p-6 md:p-8">
             {activePage === 'dashboard' && <Dashboard masterData={masterData} realizationData={realizationData} spendingData={spendingData} />}
-            {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} />}
-            {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} masterData={masterData} />}
+            {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} deleteRow={deleteMasterData} clearAll={clearMasterData} />}
+            {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} deleteRow={deleteRealizationData} clearAll={clearRealizationData} masterData={masterData} />}
             {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
             {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} />}
           </div>

@@ -7,9 +7,11 @@ import { MasterData } from '../types';
 interface Props {
   data: MasterData[];
   setData: (data: MasterData[]) => void;
+  deleteRow: (id: string) => void;
+  clearAll: () => void;
 }
 
-const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
+const MasterDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -57,24 +59,46 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-        const formattedData: MasterData[] = jsonData.map((row, index) => ({
-          id: `master-${Date.now()}-${index}`,
-          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
-          kode_skpd: String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim(),
-          program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
-          kode_program: String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim(),
-          kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
-          kode_kegiatan: String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim(),
-          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
-          kode_sub_kegiatan: String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim(),
-          belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
-          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim(),
-          anggaran: parseNumber(findValue(row, ['Anggaran', 'Pagu', 'Nilai Anggaran', 'Pagu Anggaran', 'Pagu_Anggaran'])),
-          realisasi: 0,
-          pagu_spd: parseNumber(findValue(row, ['SPD', 'Pagu SPD', 'Pagu_SPD', 'Nilai SPD', 'Nilai_SPD'])),
-        }));
+        const formattedData: MasterData[] = jsonData.map((row, index) => {
+          const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
+          const kode_program = String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim();
+          const kode_kegiatan = String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim();
+          const kode_sub_kegiatan = String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim();
+          const kode_belanja = String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim();
+          
+          // Deterministic ID to prevent duplicates on re-upload
+          const id = `m-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}`.replace(/\s+/g, '_');
 
-        setData([...data, ...formattedData]);
+          return {
+            id: id || `master-${Date.now()}-${index}`,
+            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
+            kode_skpd,
+            program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
+            kode_program,
+            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
+            kode_kegiatan,
+            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
+            kode_sub_kegiatan,
+            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+            kode_belanja,
+            anggaran: parseNumber(findValue(row, ['Anggaran', 'Pagu', 'Nilai Anggaran', 'Pagu Anggaran', 'Pagu_Anggaran'])),
+            realisasi: 0,
+            pagu_spd: parseNumber(findValue(row, ['SPD', 'Pagu SPD', 'Pagu_SPD', 'Nilai SPD', 'Nilai_SPD'])),
+          };
+        });
+
+        // Deduplicate locally before setting state
+        const combinedData = [...data];
+        formattedData.forEach(newItem => {
+          const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
+          if (existingIndex > -1) {
+            combinedData[existingIndex] = newItem;
+          } else {
+            combinedData.push(newItem);
+          }
+        });
+
+        setData(combinedData);
         setImportStatus(`Berhasil mengimpor ${formattedData.length} baris data master.`);
         setTimeout(() => setImportStatus(null), 3000);
       } catch (err) {
@@ -88,15 +112,15 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
 
   const clearAllData = () => {
     if (window.confirm('Hapus SELURUH data master?')) {
-      setData([]);
+      clearAll();
       setImportStatus('Berhasil: Semua data dihapus.');
       setTimeout(() => setImportStatus(null), 3000);
     }
   };
 
-  const deleteRow = (id: string) => {
+  const handleDeleteRow = (id: string) => {
     if (window.confirm('Hapus baris ini?')) {
-      setData(data.filter(item => item.id !== id));
+      deleteRow(id);
     }
   };
 
@@ -186,7 +210,7 @@ const MasterDataPage: React.FC<Props> = ({ data, setData }) => {
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
                     <button onClick={() => setEditingItem(row)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={14} /></button>
-                    <button onClick={() => deleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                    <button onClick={() => handleDeleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>

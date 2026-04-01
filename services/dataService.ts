@@ -9,7 +9,8 @@ import {
   writeBatch, 
   query, 
   limit, 
-  getDocsFromServer 
+  getDocsFromServer,
+  deleteDoc
 } from "firebase/firestore";
 
 /**
@@ -106,6 +107,29 @@ export const DataService = {
     }
   },
 
+  async deleteMasterData(id: string): Promise<void> {
+    const path = 'master_data';
+    try {
+      await deleteDoc(doc(db, path, id));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
+    }
+  },
+
+  async clearMasterData(): Promise<void> {
+    const path = 'master_data';
+    try {
+      const snapshot = await getDocs(collection(db, path));
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
+    }
+  },
+
   // --- REALIZATION DATA ---
   async getRealizationData(): Promise<RealizationData[]> {
     const path = 'realization_data';
@@ -129,6 +153,29 @@ export const DataService = {
       await batch.commit();
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  async deleteRealizationData(id: string): Promise<void> {
+    const path = 'realization_data';
+    try {
+      await deleteDoc(doc(db, path, id));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
+    }
+  },
+
+  async clearRealizationData(): Promise<void> {
+    const path = 'realization_data';
+    try {
+      const snapshot = await getDocs(collection(db, path));
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
     }
   },
 

@@ -8,10 +8,12 @@ import SearchableSelect from '../components/SearchableSelect';
 interface Props {
   data: RealizationData[];
   setData: (data: RealizationData[]) => void;
+  deleteRow: (id: string) => void;
+  clearAll: () => void;
   masterData: MasterData[];
 }
 
-const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => {
+const RealizationDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll, masterData }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -194,22 +196,44 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-        const formattedData: RealizationData[] = jsonData.map((row, index) => ({
-          id: `realization-${Date.now()}-${index}`,
-          skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
-          kode_skpd: String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim(),
-          program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
-          kode_program: String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim(),
-          kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
-          kode_kegiatan: String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim(),
-          sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
-          kode_sub_kegiatan: String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim(),
-          belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
-          kode_belanja: String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim(),
-          realisasi: parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi'])),
-        }));
+        const formattedData: RealizationData[] = jsonData.map((row, index) => {
+          const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
+          const kode_program = String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim();
+          const kode_kegiatan = String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim();
+          const kode_sub_kegiatan = String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim();
+          const kode_belanja = String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim();
+          const realisasi = parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']));
+          
+          // Deterministic ID for realization if possible, otherwise use index
+          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${index}`.replace(/\s+/g, '_');
 
-        setData([...data, ...formattedData]);
+          return {
+            id,
+            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
+            kode_skpd,
+            program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
+            kode_program,
+            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
+            kode_kegiatan,
+            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
+            kode_sub_kegiatan,
+            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+            kode_belanja,
+            realisasi,
+          };
+        });
+
+        const combinedData = [...data];
+        formattedData.forEach(newItem => {
+          const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
+          if (existingIndex > -1) {
+            combinedData[existingIndex] = newItem;
+          } else {
+            combinedData.push(newItem);
+          }
+        });
+
+        setData(combinedData);
         setImportStatus(`Berhasil mengimpor ${formattedData.length} baris realisasi.`);
         setTimeout(() => setImportStatus(null), 3000);
       } catch (err) {
@@ -223,13 +247,13 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
 
   const clearData = () => {
     if (window.confirm('Hapus seluruh data realisasi?')) {
-      setData([]);
+      clearAll();
     }
   };
 
-  const deleteRow = (id: string) => {
+  const handleDeleteRow = (id: string) => {
     if (window.confirm('Hapus baris realisasi ini?')) {
-      setData(data.filter(item => item.id !== id));
+      deleteRow(id);
     }
   };
 
@@ -359,7 +383,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, masterData }) => 
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <button onClick={() => startEdit(row)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title="Edit"><Edit2 size={14} /></button>
-                    <button onClick={() => deleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Hapus"><Trash2 size={14} /></button>
+                    <button onClick={() => handleDeleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Hapus"><Trash2 size={14} /></button>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
