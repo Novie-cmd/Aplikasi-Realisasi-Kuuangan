@@ -7,11 +7,12 @@ import { MasterData } from '../types';
 interface Props {
   data: MasterData[];
   setData: (data: MasterData[]) => void;
+  replaceData: (data: MasterData[]) => void;
   deleteRow: (id: string) => void;
   clearAll: () => void;
 }
 
-const MasterDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll }) => {
+const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow, clearAll }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -48,6 +49,12 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll })
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const isReplace = window.confirm(
+      "Apakah Anda ingin MENGGANTI seluruh data master yang ada dengan data dari file ini?\n\n" +
+      "Klik 'OK' untuk Ganti Semua (Membersihkan data lama).\n" +
+      "Klik 'Cancel' untuk Tambah/Update data yang sudah ada."
+    );
 
     setImportStatus('Memproses file master...');
     const reader = new FileReader();
@@ -87,18 +94,22 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll })
           };
         });
 
-        // Deduplicate locally before setting state
-        const combinedData = [...data];
-        formattedData.forEach(newItem => {
-          const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
-          if (existingIndex > -1) {
-            combinedData[existingIndex] = newItem;
-          } else {
-            combinedData.push(newItem);
-          }
-        });
+        if (isReplace) {
+          replaceData(formattedData);
+        } else {
+          // Deduplicate locally before setting state
+          const combinedData = [...data];
+          formattedData.forEach(newItem => {
+            const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
+            if (existingIndex > -1) {
+              combinedData[existingIndex] = newItem;
+            } else {
+              combinedData.push(newItem);
+            }
+          });
+          setData(combinedData);
+        }
 
-        setData(combinedData);
         setImportStatus(`Berhasil mengimpor ${formattedData.length} baris data master.`);
         setTimeout(() => setImportStatus(null), 3000);
       } catch (err) {
@@ -169,15 +180,25 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, deleteRow, clearAll })
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>
-          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"><Upload size={18} /> Import Master</button>
-          <button onClick={clearAllData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2"><Trash2 size={18} /> Hapus Semua</button>
+          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm"><Upload size={18} /> Import Master</button>
+          <button onClick={clearAllData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors shadow-sm"><Trash2 size={18} /> Hapus Semua</button>
+        </div>
+        <div className="flex gap-4">
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Baris</p>
+            <p className="text-sm font-bold text-gray-900">{data.length}</p>
+          </div>
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Anggaran</p>
+            <p className="text-sm font-bold text-indigo-600">{formatIDR(data.reduce((acc, curr) => acc + (curr.anggaran || 0), 0))}</p>
+          </div>
         </div>
         <div className="relative w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none" />
+          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
       </div>
 

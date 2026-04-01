@@ -96,12 +96,49 @@ export const DataService = {
   async saveMasterData(data: MasterData[]): Promise<void> {
     const path = 'master_data';
     try {
-      const batch = writeBatch(db);
-      data.forEach(item => {
-        const docRef = doc(db, path, item.id);
-        batch.set(docRef, item);
-      });
-      await batch.commit();
+      // Split into chunks of 500 for Firestore batch limits
+      const chunks = [];
+      for (let i = 0; i < data.length; i += 500) {
+        chunks.push(data.slice(i, i + 500));
+      }
+
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(item => {
+          const docRef = doc(db, path, item.id);
+          batch.set(docRef, item);
+        });
+        await batch.commit();
+      }
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  /**
+   * Menghapus semua data lama dan menggantinya dengan data baru.
+   * Ini mencegah duplikasi data lama yang masih tersimpan di Firestore.
+   */
+  async syncMasterData(data: MasterData[]): Promise<void> {
+    const path = 'master_data';
+    try {
+      // 1. Ambil semua dokumen yang ada
+      const snapshot = await getDocs(collection(db, path));
+      
+      // 2. Hapus semua dokumen lama (chunked)
+      const deleteChunks = [];
+      for (let i = 0; i < snapshot.docs.length; i += 500) {
+        deleteChunks.push(snapshot.docs.slice(i, i + 500));
+      }
+      
+      for (const chunk of deleteChunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      // 3. Simpan data baru (chunked)
+      await this.saveMasterData(data);
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
     }
@@ -145,12 +182,38 @@ export const DataService = {
   async saveRealizationData(data: RealizationData[]): Promise<void> {
     const path = 'realization_data';
     try {
-      const batch = writeBatch(db);
-      data.forEach(item => {
-        const docRef = doc(db, path, item.id);
-        batch.set(docRef, item);
-      });
-      await batch.commit();
+      const chunks = [];
+      for (let i = 0; i < data.length; i += 500) {
+        chunks.push(data.slice(i, i + 500));
+      }
+
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(item => {
+          const docRef = doc(db, path, item.id);
+          batch.set(docRef, item);
+        });
+        await batch.commit();
+      }
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  async syncRealizationData(data: RealizationData[]): Promise<void> {
+    const path = 'realization_data';
+    try {
+      const snapshot = await getDocs(collection(db, path));
+      const deleteChunks = [];
+      for (let i = 0; i < snapshot.docs.length; i += 500) {
+        deleteChunks.push(snapshot.docs.slice(i, i + 500));
+      }
+      for (const chunk of deleteChunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+      await this.saveRealizationData(data);
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
     }
