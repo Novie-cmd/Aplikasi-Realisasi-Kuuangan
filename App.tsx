@@ -189,11 +189,15 @@ const App: React.FC = () => {
 
   const clearMasterData = async () => {
     setIsSyncing(true);
+    const backup = [...masterData];
     setMasterData([]);
     try {
       await DataService.clearMasterData();
+      alert("Semua data master berhasil dihapus dari server.");
     } catch (err) {
       console.error("Gagal menghapus semua data master", err);
+      setMasterData(backup);
+      alert("Gagal menghapus data master dari server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }
@@ -241,11 +245,15 @@ const App: React.FC = () => {
 
   const clearRealizationData = async () => {
     setIsSyncing(true);
+    const backup = [...realizationData];
     setRealizationData([]);
     try {
       await DataService.clearRealizationData();
+      alert("Semua data realisasi berhasil dihapus dari server.");
     } catch (err) {
       console.error("Gagal menghapus semua data realisasi", err);
+      setRealizationData(backup);
+      alert("Gagal menghapus data realisasi dari server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }

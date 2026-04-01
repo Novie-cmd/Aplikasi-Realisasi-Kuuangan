@@ -85,11 +85,18 @@ export const DataService = {
   async getMasterData(): Promise<MasterData[]> {
     const path = 'master_data';
     try {
-      const snapshot = await getDocs(collection(db, path));
+      // Gunakan getDocsFromServer untuk memastikan data terbaru dari server (menghindari cache)
+      const snapshot = await getDocsFromServer(collection(db, path));
       return snapshot.docs.map(doc => doc.data() as MasterData);
     } catch (e) {
-      handleFirestoreError(e, OperationType.GET, path);
-      return [];
+      console.warn("Gagal mengambil data dari server, mencoba cache...", e);
+      try {
+        const snapshot = await getDocs(collection(db, path));
+        return snapshot.docs.map(doc => doc.data() as MasterData);
+      } catch (err) {
+        handleFirestoreError(e, OperationType.GET, path);
+        return [];
+      }
     }
   },
 
@@ -122,8 +129,9 @@ export const DataService = {
   async syncMasterData(data: MasterData[]): Promise<void> {
     const path = 'master_data';
     try {
-      // 1. Ambil semua dokumen yang ada
-      const snapshot = await getDocs(collection(db, path));
+      // 1. Ambil semua dokumen yang ada dari server (bukan cache)
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Sync Master: Menghapus ${snapshot.docs.length} dokumen lama...`);
       
       // 2. Hapus semua dokumen lama (chunked)
       const deleteChunks = [];
@@ -156,7 +164,10 @@ export const DataService = {
   async clearMasterData(): Promise<void> {
     const path = 'master_data';
     try {
-      const snapshot = await getDocs(collection(db, path));
+      // Gunakan getDocsFromServer untuk memastikan semua data terdeteksi
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Clear Master: Menghapus ${snapshot.docs.length} dokumen...`);
+      
       const chunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
         chunks.push(snapshot.docs.slice(i, i + 500));
@@ -176,11 +187,17 @@ export const DataService = {
   async getRealizationData(): Promise<RealizationData[]> {
     const path = 'realization_data';
     try {
-      const snapshot = await getDocs(collection(db, path));
+      const snapshot = await getDocsFromServer(collection(db, path));
       return snapshot.docs.map(doc => doc.data() as RealizationData);
     } catch (e) {
-      handleFirestoreError(e, OperationType.GET, path);
-      return [];
+      console.warn("Gagal mengambil data realisasi dari server, mencoba cache...", e);
+      try {
+        const snapshot = await getDocs(collection(db, path));
+        return snapshot.docs.map(doc => doc.data() as RealizationData);
+      } catch (err) {
+        handleFirestoreError(e, OperationType.GET, path);
+        return [];
+      }
     }
   },
 
@@ -208,7 +225,9 @@ export const DataService = {
   async syncRealizationData(data: RealizationData[]): Promise<void> {
     const path = 'realization_data';
     try {
-      const snapshot = await getDocs(collection(db, path));
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Sync Realization: Menghapus ${snapshot.docs.length} dokumen lama...`);
+      
       const deleteChunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
         deleteChunks.push(snapshot.docs.slice(i, i + 500));
@@ -236,7 +255,9 @@ export const DataService = {
   async clearRealizationData(): Promise<void> {
     const path = 'realization_data';
     try {
-      const snapshot = await getDocs(collection(db, path));
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Clear Realization: Menghapus ${snapshot.docs.length} dokumen...`);
+      
       const chunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
         chunks.push(snapshot.docs.slice(i, i + 500));

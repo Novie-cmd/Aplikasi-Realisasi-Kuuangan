@@ -66,17 +66,20 @@ service cloud.firestore {
 
     match /master_data/{id} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isValidMasterData(request.resource.data);
+      allow create, update: if isAuthenticated() && isValidMasterData(request.resource.data);
+      allow delete: if isAuthenticated();
     }
 
     match /realization_data/{id} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isValidRealizationData(request.resource.data);
+      allow create, update: if isAuthenticated() && isValidRealizationData(request.resource.data);
+      allow delete: if isAuthenticated();
     }
 
     match /spending_data/{id} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isValidSpendingData(request.resource.data);
+      allow create, update: if isAuthenticated() && isValidSpendingData(request.resource.data);
+      allow delete: if isAuthenticated();
     }
   }
 }
