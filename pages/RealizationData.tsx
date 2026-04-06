@@ -299,19 +299,14 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </button>
           </div>
           <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sub Kegiatan</label>
-              <select 
-                value={formData.sub_kegiatan}
-                onChange={(e) => handleSubKegiatanChange(e.target.value)}
-                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
-              >
-                <option value="">Pilih Sub Kegiatan</option>
-                {subKegiatanOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect 
+              label="Sub Kegiatan"
+              placeholder="Pilih Sub Kegiatan"
+              options={subKegiatanOptions}
+              value={formData.sub_kegiatan}
+              onChange={handleSubKegiatanChange}
+              showAll={false}
+            />
 
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Sub Kegiatan</label>
