@@ -38,7 +38,8 @@
         "kode_sub_kegiatan": { "type": "string" },
         "belanja": { "type": "string" },
         "kode_belanja": { "type": "string" },
-        "realisasi": { "type": "number" }
+        "realisasi": { "type": "number" },
+        "keterangan_dokumen": { "type": "string" }
       },
       "required": ["id", "skpd", "kode_skpd", "kode_belanja", "realisasi"]
     },

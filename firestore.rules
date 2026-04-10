@@ -10,7 +10,7 @@ service cloud.firestore {
     // Fields: id, skpd, kode_skpd, program, kode_program, kegiatan, kode_kegiatan, sub_kegiatan, kode_sub_kegiatan, belanja, kode_belanja, anggaran, realisasi, pagu_spd
     //
     // Collection: realization_data
-    // Fields: id, skpd, kode_skpd, program, kode_program, kegiatan, kode_kegiatan, sub_kegiatan, kode_sub_kegiatan, belanja, kode_belanja, realisasi
+    // Fields: id, skpd, kode_skpd, program, kode_program, kegiatan, kode_kegiatan, sub_kegiatan, kode_sub_kegiatan, belanja, kode_belanja, realisasi, keterangan_dokumen
     //
     // Collection: spending_data
     // Fields: id, kode_belanja, belanja
@@ -45,7 +45,8 @@ service cloud.firestore {
              data.skpd is string &&
              data.kode_skpd is string &&
              data.kode_belanja is string &&
-             data.realisasi is number;
+             data.realisasi is number &&
+             (!('keterangan_dokumen' in data) || data.keterangan_dokumen is string);
     }
 
     function isValidSpendingData(data) {

@@ -27,7 +27,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
     kode_sub_kegiatan: '',
     belanja: '',
     kode_belanja: '',
-    realisasi: 0
+    realisasi: 0,
+    keterangan_dokumen: ''
   });
 
   const subKegiatanOptions = useMemo(() => {
@@ -98,7 +99,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             kode_sub_kegiatan: match.kode_sub_kegiatan,
             belanja: match.belanja,
             kode_belanja: match.kode_belanja,
-            realisasi: formData.realisasi
+            realisasi: formData.realisasi,
+            keterangan_dokumen: formData.keterangan_dokumen
           };
         }
         return item;
@@ -118,7 +120,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         kode_sub_kegiatan: match.kode_sub_kegiatan,
         belanja: match.belanja,
         kode_belanja: match.kode_belanja,
-        realisasi: formData.realisasi
+        realisasi: formData.realisasi,
+        keterangan_dokumen: formData.keterangan_dokumen
       };
       setData([newItem, ...data]);
     }
@@ -128,7 +131,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       kode_sub_kegiatan: '',
       belanja: '',
       kode_belanja: '',
-      realisasi: 0
+      realisasi: 0,
+      keterangan_dokumen: ''
     });
     setShowForm(false);
   };
@@ -139,7 +143,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       kode_sub_kegiatan: row.kode_sub_kegiatan,
       belanja: row.belanja,
       kode_belanja: row.kode_belanja,
-      realisasi: row.realisasi
+      realisasi: row.realisasi,
+      keterangan_dokumen: row.keterangan_dokumen || ''
     });
     setEditingId(row.id);
     setShowForm(true);
@@ -153,7 +158,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       kode_sub_kegiatan: '',
       belanja: '',
       kode_belanja: '',
-      realisasi: 0
+      realisasi: 0,
+      keterangan_dokumen: ''
     });
     setShowForm(false);
   };
@@ -204,9 +210,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const kode_sub_kegiatan = String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim();
           const kode_belanja = String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim();
           const realisasi = parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']));
+          const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
           
           // Deterministic ID for realization if possible, otherwise use index
-          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${index}`.replace(/\s+/g, '_');
+          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`.replace(/\s+/g, '_');
 
           return {
             id,
@@ -221,6 +228,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
             kode_belanja,
             realisasi,
+            keterangan_dokumen,
           };
         });
 
@@ -342,6 +350,17 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               </div>
             </div>
 
+            <div className="lg:col-span-2 space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</label>
+              <input 
+                type="text" 
+                value={formData.keterangan_dokumen}
+                onChange={(e) => setFormData({...formData, keterangan_dokumen: e.target.value})}
+                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
+                placeholder="Contoh: SP2D No. XXX / Kuitansi No. YYY"
+              />
+            </div>
+
             <div className="lg:col-span-4 flex justify-end">
               <button 
                 type="submit"
@@ -374,6 +393,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Belanja</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Keterangan Dokumen</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -382,6 +402,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               i.belanja.toLowerCase().includes(searchTerm.toLowerCase()) ||
               i.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
               i.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (i.keterangan_dokumen && i.keterangan_dokumen.toLowerCase().includes(searchTerm.toLowerCase())) ||
               i.kode_kegiatan.includes(searchTerm) ||
               i.kode_belanja.includes(searchTerm)
             ).map((row) => (
@@ -401,6 +422,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
                 <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
+                <td className="px-4 py-3 text-sm text-gray-600 italic truncate max-w-[250px]">{row.keterangan_dokumen || '-'}</td>
               </tr>
             ))}
           </tbody>
