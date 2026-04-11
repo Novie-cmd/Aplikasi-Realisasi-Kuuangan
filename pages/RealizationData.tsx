@@ -213,20 +213,24 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
           
           // Deterministic ID for realization if possible, otherwise use index
-          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`.replace(/\s+/g, '_');
+          // Sanitize ID: remove slashes and other characters that could break Firestore paths
+          const safeId = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`
+            .replace(/\s+/g, '_')
+            .replace(/\//g, '-')
+            .replace(/[.#$[\]]/g, '_');
 
           return {
-            id,
-            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
-            kode_skpd,
-            program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
-            kode_program,
-            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
-            kode_kegiatan,
-            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
-            kode_sub_kegiatan,
-            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
-            kode_belanja,
+            id: safeId,
+            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || 'SKPD TIDAK DIKENAL').trim(),
+            kode_skpd: kode_skpd || '0',
+            program: String(findValue(row, ['Program', 'Nama Program']) || '-').trim(),
+            kode_program: kode_program || '0',
+            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '-').trim(),
+            kode_kegiatan: kode_kegiatan || '0',
+            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '-').trim(),
+            kode_sub_kegiatan: kode_sub_kegiatan || '0',
+            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || 'BELANJA TIDAK DIKENAL').trim(),
+            kode_belanja: kode_belanja || '0',
             realisasi,
             keterangan_dokumen,
           };
