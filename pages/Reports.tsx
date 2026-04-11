@@ -36,17 +36,18 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
   }, [masterData]);
 
   // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
+  // Digunakan untuk pencocokan kunci (key matching) yang lebih akurat
   const clean = (val: any): string => {
     if (val === null || val === undefined) return '';
     return val.toString()
       .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '') // Hapus zero-width & non-breaking spaces
-      .replace(/\s+/g, ' ') // Ubah multiple space jadi single space
-      .trim()
-      .toLowerCase();
+      .replace(/[^a-zA-Z0-9]/g, '') // Hapus semua karakter non-alphanumeric (titik, spasi, strip, dll)
+      .toLowerCase()
+      .trim();
   };
 
   const reportData = useMemo(() => {
-    // 1. Buat Mapping Realisasi berdasarkan SKPD + Kode Belanja
+    // 1. Buat Mapping Realisasi berdasarkan SKPD + Program + Kegiatan + Sub Kegiatan + Kode Belanja
     // Ini adalah kunci paling unik untuk mencocokkan realisasi ke budget line
     const realizationMap: Record<string, number> = {};
     realizationData.forEach(r => {
@@ -54,6 +55,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       realizationMap[rKey] = (realizationMap[rKey] || 0) + (Number(r.realisasi) || 0);
     });
 
+    const matchedKeys = new Set<string>();
     const aggregated: Record<string, { 
       key: string;
       name: string; 
@@ -117,17 +119,19 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
       // Cari apakah ada realisasi untuk item master ini
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey]) {
+      if (realizationMap[mKey] !== undefined) {
         aggregated[key].realisasi += realizationMap[mKey];
-        // Hapus dari map agar kita tahu data mana yang belum terpetakan di akhir
-        delete realizationMap[mKey];
+        // Tandai bahwa kunci ini sudah terpakai agar tidak muncul di anomali
+        matchedKeys.add(mKey);
       }
     });
 
     // 3. Tambahkan data realisasi yang TIDAK ditemukan di Master (Anomali)
-    // Jika masih ada sisa di realizationMap, berarti ada transaksi untuk kode belanja yang tidak ada anggarannya
+    // Jika ada realisasi yang kuncinya tidak ada di matchedKeys, berarti anomali
     Object.entries(realizationMap).forEach(([rKey, value]) => {
-      const [skpdName] = rKey.split('|');
+      if (matchedKeys.has(rKey)) return;
+      
+      const [skpdCode] = rKey.split('|');
       const unmappedKey = `unmapped|${rKey}`;
       
       // Cari data asli untuk mendapatkan nama belanja
@@ -147,7 +151,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         anggaran: 0,
         pagu_spd: 0,
         realisasi: value,
-        skpd: original?.skpd || skpdName.toUpperCase(),
+        skpd: original?.skpd || skpdCode.toUpperCase(),
         isUnmapped: true
       };
     });

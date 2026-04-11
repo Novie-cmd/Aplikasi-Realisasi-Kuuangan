@@ -19,13 +19,14 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
   const [detailSearch, setDetailSearch] = useState('');
 
   // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
+  // Digunakan untuk pencocokan kunci (key matching) yang lebih akurat
   const clean = (val: any): string => {
     if (val === null || val === undefined) return '';
     return val.toString()
       .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '') // Hapus zero-width & non-breaking spaces
-      .replace(/\s+/g, ' ') // Ubah multiple space jadi single space
-      .trim()
-      .toLowerCase();
+      .replace(/[^a-zA-Z0-9]/g, '') // Hapus semua karakter non-alphanumeric (titik, spasi, strip, dll)
+      .toLowerCase()
+      .trim();
   };
 
   const stats = useMemo(() => {
@@ -36,6 +37,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
+    const matchedKeys = new Set<string>();
     let totalAnggaran = 0;
     let totalRealisasi = 0;
     let totalPaguSpd = 0;
@@ -45,17 +47,19 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       totalAnggaran += (Number(m.anggaran) || 0);
       totalPaguSpd += (Number(m.pagu_spd) || 0);
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey]) {
+      if (realizationMap[mKey] !== undefined) {
         totalRealisasi += realizationMap[mKey];
-        delete realizationMap[mKey]; // Tandai sudah terhitung
+        matchedKeys.add(mKey);
       }
       // Tambahkan realisasi statis yang ada di master jika ada
       totalRealisasi += (Number(m.realisasi) || 0);
     });
 
     // 3. Tambahkan sisa realisasi yang tidak terpetakan di master (Anomali)
-    Object.values(realizationMap).forEach(val => {
-      totalRealisasi += val;
+    Object.entries(realizationMap).forEach(([key, val]) => {
+      if (!matchedKeys.has(key)) {
+        totalRealisasi += val;
+      }
     });
 
     const sisa = totalAnggaran - totalRealisasi;
@@ -75,20 +79,23 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
+    const matchedKeysChart = new Set<string>();
     masterData.forEach(m => {
       if (!groups[m.skpd]) groups[m.skpd] = { name: m.skpd, anggaran: 0, realisasi: 0 };
       groups[m.skpd].anggaran += Number(m.anggaran) || 0;
       
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey]) {
+      if (realizationMap[mKey] !== undefined) {
         groups[m.skpd].realisasi += realizationMap[mKey];
-        delete realizationMap[mKey];
+        matchedKeysChart.add(mKey);
       }
       groups[m.skpd].realisasi += (Number(m.realisasi) || 0);
     });
 
     // Tambahkan realisasi anomali ke SKPD terkait di chart
     Object.entries(realizationMap).forEach(([key, val]) => {
+      if (matchedKeysChart.has(key)) return;
+      
       const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === key);
       const skpdNameRaw = original?.skpd || 'LAINNYA';
       if (!groups[skpdNameRaw]) groups[skpdNameRaw] = { name: skpdNameRaw, anggaran: 0, realisasi: 0 };
@@ -135,7 +142,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       groups[key].anggaran += Number(m.anggaran) || 0;
       
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey]) {
+      if (realizationMap[mKey] !== undefined) {
         groups[key].realisasi += realizationMap[mKey];
         // We don't delete here because multiple master lines can point to same belanja name
       }
