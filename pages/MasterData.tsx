@@ -36,14 +36,7 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
         return row[key];
       }
     }
-    // Priority 2: Match after removing non-alphanumeric (e.g. "Kd. SKPD" -> "kdskpd")
-    for (const key of keys) {
-      const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (keywords.some(kw => cleanKey === kw.toLowerCase().replace(/[^a-z0-9]/g, ''))) {
-        return row[key];
-      }
-    }
-    // Priority 3: Partial match
+    // Priority 2: Partial match
     for (const key of keys) {
       const normalizedKey = key.toLowerCase().trim();
       if (keywords.some(kw => normalizedKey.includes(kw.toLowerCase()))) {

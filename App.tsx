@@ -212,7 +212,6 @@ const App: React.FC = () => {
       setRealizationData(freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi", err);
-      alert("Gagal menyimpan data realisasi ke server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }
@@ -227,7 +226,6 @@ const App: React.FC = () => {
       setRealizationData(freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi (replace)", err);
-      alert("Gagal mengganti data realisasi di server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }

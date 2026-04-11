@@ -19,14 +19,13 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
   const [detailSearch, setDetailSearch] = useState('');
 
   // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
-  // Digunakan untuk pencocokan kunci (key matching) yang lebih akurat
   const clean = (val: any): string => {
     if (val === null || val === undefined) return '';
     return val.toString()
       .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '') // Hapus zero-width & non-breaking spaces
-      .replace(/[^a-zA-Z0-9]/g, '') // Hapus semua karakter non-alphanumeric (titik, spasi, strip, dll)
-      .toLowerCase()
-      .trim();
+      .replace(/\s+/g, ' ') // Ubah multiple space jadi single space
+      .trim()
+      .toLowerCase();
   };
 
   const stats = useMemo(() => {
@@ -37,7 +36,6 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
-    const matchedKeys = new Set<string>();
     let totalAnggaran = 0;
     let totalRealisasi = 0;
     let totalPaguSpd = 0;
@@ -47,19 +45,17 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       totalAnggaran += (Number(m.anggaran) || 0);
       totalPaguSpd += (Number(m.pagu_spd) || 0);
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey] !== undefined) {
+      if (realizationMap[mKey]) {
         totalRealisasi += realizationMap[mKey];
-        matchedKeys.add(mKey);
+        delete realizationMap[mKey]; // Tandai sudah terhitung
       }
       // Tambahkan realisasi statis yang ada di master jika ada
       totalRealisasi += (Number(m.realisasi) || 0);
     });
 
     // 3. Tambahkan sisa realisasi yang tidak terpetakan di master (Anomali)
-    Object.entries(realizationMap).forEach(([key, val]) => {
-      if (!matchedKeys.has(key)) {
-        totalRealisasi += val;
-      }
+    Object.values(realizationMap).forEach(val => {
+      totalRealisasi += val;
     });
 
     const sisa = totalAnggaran - totalRealisasi;
@@ -79,23 +75,20 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       realizationMap[key] = (realizationMap[key] || 0) + (Number(r.realisasi) || 0);
     });
 
-    const matchedKeysChart = new Set<string>();
     masterData.forEach(m => {
       if (!groups[m.skpd]) groups[m.skpd] = { name: m.skpd, anggaran: 0, realisasi: 0 };
       groups[m.skpd].anggaran += Number(m.anggaran) || 0;
       
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey] !== undefined) {
+      if (realizationMap[mKey]) {
         groups[m.skpd].realisasi += realizationMap[mKey];
-        matchedKeysChart.add(mKey);
+        delete realizationMap[mKey];
       }
       groups[m.skpd].realisasi += (Number(m.realisasi) || 0);
     });
 
     // Tambahkan realisasi anomali ke SKPD terkait di chart
     Object.entries(realizationMap).forEach(([key, val]) => {
-      if (matchedKeysChart.has(key)) return;
-      
       const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === key);
       const skpdNameRaw = original?.skpd || 'LAINNYA';
       if (!groups[skpdNameRaw]) groups[skpdNameRaw] = { name: skpdNameRaw, anggaran: 0, realisasi: 0 };
@@ -142,7 +135,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       groups[key].anggaran += Number(m.anggaran) || 0;
       
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey] !== undefined) {
+      if (realizationMap[mKey]) {
         groups[key].realisasi += realizationMap[mKey];
         // We don't delete here because multiple master lines can point to same belanja name
       }
@@ -253,28 +246,41 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             className="grid grid-cols-1 lg:grid-cols-3 gap-6"
           >
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                  <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-                  Perbandingan Anggaran vs Realisasi per SKPD
-                </h3>
-                <span className="text-[10px] font-bold text-gray-400 italic">Geser horizontal jika data banyak →</span>
-              </div>
               <div className="h-[400px] overflow-x-auto no-scrollbar">
                 <div style={{ minWidth: Math.max(100, chartData.length * 5) + '%' }}>
                   <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 40 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
+                      <defs>
+                        <linearGradient id="colorAnggaran" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#818cf8" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#818cf8" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="colorRealisasi" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#34d399" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#34d399" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                      <XAxis dataKey="name" angle={-15} textAnchor="end" height={60} fontSize={10} interval={0} stroke="#9ca3af" />
-                      <YAxis tickFormatter={(val) => `${(val / 1e6).toFixed(0)}M`} fontSize={10} stroke="#9ca3af" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-15} 
+                        textAnchor="end" 
+                        height={60} 
+                        fontSize={10} 
+                        interval={0} 
+                        stroke="#9ca3af" 
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis hide={true} />
                       <Tooltip 
                         cursor={{fill: '#f9fafb'}}
                         contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                         formatter={(value: number) => [formatIDR(value), '']}
                       />
                       <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                      <Bar dataKey="anggaran" name="Anggaran" fill="#818cf8" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="realisasi" name="Realisasi" fill="#34d399" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="anggaran" name="Anggaran" fill="url(#colorAnggaran)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="realisasi" name="Realisasi" fill="url(#colorRealisasi)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

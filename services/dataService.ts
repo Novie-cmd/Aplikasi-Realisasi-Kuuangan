@@ -204,22 +204,9 @@ export const DataService = {
   async saveRealizationData(data: RealizationData[]): Promise<void> {
     const path = 'realization_data';
     try {
-      // Filter out items with invalid IDs or missing required fields to prevent batch failure
-      const validData = data.filter(item => {
-        if (!item.id || typeof item.id !== 'string') return false;
-        if (!item.skpd || !item.kode_skpd || !item.kode_belanja) return false;
-        if (typeof item.realisasi !== 'number') return false;
-        return true;
-      });
-
-      if (validData.length === 0 && data.length > 0) {
-        console.error("Semua data realisasi tidak valid untuk disimpan ke Firestore.");
-        return;
-      }
-
       const chunks = [];
-      for (let i = 0; i < validData.length; i += 500) {
-        chunks.push(validData.slice(i, i + 500));
+      for (let i = 0; i < data.length; i += 500) {
+        chunks.push(data.slice(i, i + 500));
       }
 
       for (const chunk of chunks) {

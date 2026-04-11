@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo } from 'react';
-import { Info, Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
+import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RealizationData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -174,21 +174,12 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
 
   const findValue = (row: any, keywords: string[]) => {
     const keys = Object.keys(row);
-    // Priority 1: Exact match (case insensitive, trimmed)
     for (const key of keys) {
       const normalizedKey = key.toLowerCase().trim();
       if (keywords.some(kw => normalizedKey === kw.toLowerCase())) {
         return row[key];
       }
     }
-    // Priority 2: Match after removing non-alphanumeric (e.g. "Kd. SKPD" -> "kdskpd")
-    for (const key of keys) {
-      const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (keywords.some(kw => cleanKey === kw.toLowerCase().replace(/[^a-z0-9]/g, ''))) {
-        return row[key];
-      }
-    }
-    // Priority 3: Partial match
     for (const key of keys) {
       const normalizedKey = key.toLowerCase().trim();
       if (keywords.some(kw => normalizedKey.includes(kw.toLowerCase()))) {
@@ -222,24 +213,20 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
           
           // Deterministic ID for realization if possible, otherwise use index
-          // Sanitize ID: remove slashes and other characters that could break Firestore paths
-          const safeId = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`
-            .replace(/\s+/g, '_')
-            .replace(/\//g, '-')
-            .replace(/[.#$[\]]/g, '_');
+          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`.replace(/\s+/g, '_');
 
           return {
-            id: safeId,
-            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || 'SKPD TIDAK DIKENAL').trim(),
-            kode_skpd: kode_skpd || '0',
-            program: String(findValue(row, ['Program', 'Nama Program']) || '-').trim(),
-            kode_program: kode_program || '0',
-            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '-').trim(),
-            kode_kegiatan: kode_kegiatan || '0',
-            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '-').trim(),
-            kode_sub_kegiatan: kode_sub_kegiatan || '0',
-            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || 'BELANJA TIDAK DIKENAL').trim(),
-            kode_belanja: kode_belanja || '0',
+            id,
+            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
+            kode_skpd,
+            program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
+            kode_program,
+            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
+            kode_kegiatan,
+            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
+            kode_sub_kegiatan,
+            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+            kode_belanja,
             realisasi,
             keterangan_dokumen,
           };
@@ -283,16 +270,6 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
 
   return (
     <div className="space-y-6">
-      {/* Information Message */}
-      <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm flex items-center gap-6">
-        <div className="p-4 bg-amber-100 text-amber-600 rounded-xl">
-          <Info size={24} />
-        </div>
-        <p className="text-sm text-amber-900 leading-relaxed font-medium">
-          Sistem mencocokkan data berdasarkan <b>Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
-        </p>
-      </div>
-
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>
