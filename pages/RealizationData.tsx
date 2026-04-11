@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo } from 'react';
-import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
+import { Info, Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RealizationData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -274,6 +274,16 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
 
   return (
     <div className="space-y-6">
+      {/* Information Message */}
+      <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm flex items-center gap-6">
+        <div className="p-4 bg-amber-100 text-amber-600 rounded-xl">
+          <Info size={24} />
+        </div>
+        <p className="text-sm text-amber-900 leading-relaxed font-medium">
+          Sistem mencocokkan data berdasarkan <b>Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
+        </p>
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>

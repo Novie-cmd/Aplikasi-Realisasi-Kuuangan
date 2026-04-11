@@ -220,9 +220,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
             <p className="text-xl font-black">{realizationData.length}</p>
           </div>
         </div>
-        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><Info size={20} /></div>
-          <p className="text-[10px] text-amber-800 leading-tight font-medium">
+        <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm flex items-center gap-6">
+          <div className="p-4 bg-amber-100 text-amber-600 rounded-xl">
+            <Info size={24} />
+          </div>
+          <p className="text-sm text-amber-900 leading-relaxed font-medium">
             Sistem mencocokkan data berdasarkan <b>Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
           </p>
         </div>
