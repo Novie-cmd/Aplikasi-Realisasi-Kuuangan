@@ -1,9 +1,10 @@
 
 import React, { useMemo, useState } from 'react';
-import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle, Printer } from 'lucide-react';
+import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle, Printer, X, Eye, List } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface Props {
   masterData: MasterData[];
@@ -17,6 +18,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
   const [selectedBelanja, setSelectedBelanja] = useState<string>('all');
+  const [detailView, setDetailView] = useState<{
+    key: string;
+    name: string;
+    level: ReportLevel;
+  } | null>(null);
 
   // Ambil daftar unik untuk dropdown
   const subKegiatanList = useMemo(() => {
@@ -49,6 +55,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
     });
 
     const aggregated: Record<string, { 
+      key: string;
       name: string; 
       parentName?: string;
       kode: string;
@@ -92,6 +99,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
       if (!aggregated[key]) {
         aggregated[key] = { 
+          key,
           name, 
           kode, 
           kode_sub_kegiatan: m.kode_sub_kegiatan,
@@ -131,6 +139,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       if (selectedSubKegiatan !== 'all' && original?.sub_kegiatan !== selectedSubKegiatan) return;
 
       aggregated[unmappedKey] = {
+        key: unmappedKey,
         name: original?.belanja || 'Kode Belanja Tidak Terdaftar di Master',
         kode: original?.kode_belanja || '?',
         kode_sub_kegiatan: original?.kode_sub_kegiatan,
@@ -167,6 +176,25 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       return acc;
     }, { anggaran: 0, spd: 0, realisasi: 0 });
   }, [reportData]);
+
+  const filteredDetails = useMemo(() => {
+    if (!detailView) return [];
+    return realizationData.filter(r => {
+      const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
+      const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
+      const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+      
+      let targetKey = detailView.key;
+      if (targetKey.startsWith('unmapped|')) {
+        targetKey = targetKey.replace('unmapped|', '');
+        return rKeySub === targetKey;
+      }
+
+      if (detailView.level === 'program') return rKeyProgram === targetKey;
+      if (detailView.level === 'kegiatan') return rKeyKegiatan === targetKey;
+      return rKeySub === targetKey;
+    });
+  }, [detailView, realizationData]);
 
   const formatIDR = (val: number) => new Intl.NumberFormat('id-ID').format(val);
 
@@ -326,7 +354,16 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-gray-700">{formatIDR(row.anggaran)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{formatIDR(row.pagu_spd)}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-right">
+                    <button 
+                      onClick={() => setDetailView({ key: row.key, name: row.name, level })}
+                      className="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded transition-colors flex items-center gap-1 ml-auto group"
+                      title="Klik untuk lihat rincian"
+                    >
+                      {formatIDR(row.realisasi)}
+                      <Eye size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  </td>
                   <td className={`px-6 py-4 text-sm font-bold text-right ${sisaSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'}`}>{formatIDR(sisaSpd)}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-red-500">{formatIDR(sisaAnggaran)}</td>
                   <td className="px-6 py-4 text-center print:px-2">
@@ -361,6 +398,92 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {detailView && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-4xl max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <List className="text-indigo-600" size={20} />
+                    Rincian Transaksi Realisasi
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">{detailView.name}</p>
+                </div>
+                <button 
+                  onClick={() => setDetailView(null)}
+                  className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {filteredDetails.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Total Realisasi</p>
+                        <p className="text-xl font-black text-emerald-700">{formatIDR(filteredDetails.reduce((acc, curr) => acc + curr.realisasi, 0))}</p>
+                      </div>
+                      <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Jumlah Transaksi</p>
+                        <p className="text-xl font-black text-indigo-700">{filteredDetails.length}</p>
+                      </div>
+                    </div>
+
+                    <div className="border rounded-xl overflow-hidden">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">No</th>
+                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</th>
+                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Nilai</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {filteredDetails.map((item, idx) => (
+                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 text-xs text-gray-400">{idx + 1}</td>
+                              <td className="px-4 py-3 text-sm font-medium text-gray-700 italic">
+                                {item.keterangan_dokumen || '-'}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-black text-right text-emerald-600">
+                                {formatIDR(item.realisasi)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                    <AlertCircle size={48} className="mb-4 opacity-20" />
+                    <p className="text-sm font-medium">Tidak ada rincian transaksi ditemukan.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-gray-50 border-t flex justify-end">
+                <button 
+                  onClick={() => setDetailView(null)}
+                  className="px-6 py-2 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

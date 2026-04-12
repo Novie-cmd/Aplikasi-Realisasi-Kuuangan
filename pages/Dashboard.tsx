@@ -246,41 +246,27 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             className="grid grid-cols-1 lg:grid-cols-3 gap-6"
           >
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 italic">Geser horizontal jika data banyak →</span>
+              </div>
               <div className="h-[400px] overflow-x-auto no-scrollbar">
                 <div style={{ minWidth: Math.max(100, chartData.length * 5) + '%' }}>
                   <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 40 }}>
-                      <defs>
-                        <linearGradient id="colorAnggaran" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#818cf8" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#818cf8" stopOpacity={0.1}/>
-                        </linearGradient>
-                        <linearGradient id="colorRealisasi" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#34d399" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#34d399" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 40 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-15} 
-                        textAnchor="end" 
-                        height={60} 
-                        fontSize={10} 
-                        interval={0} 
-                        stroke="#9ca3af" 
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis hide={true} />
+                      <XAxis dataKey="name" angle={-15} textAnchor="end" height={60} fontSize={10} interval={0} stroke="#9ca3af" />
+                      <YAxis tickFormatter={(val) => `${(val / 1e6).toFixed(0)}M`} fontSize={10} stroke="#9ca3af" />
                       <Tooltip 
                         cursor={{fill: '#f9fafb'}}
                         contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                         formatter={(value: number) => [formatIDR(value), '']}
                       />
                       <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                      <Bar dataKey="anggaran" name="Anggaran" fill="url(#colorAnggaran)" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="realisasi" name="Realisasi" fill="url(#colorRealisasi)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="anggaran" name="Anggaran" fill="#818cf8" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="realisasi" name="Realisasi" fill="#34d399" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
