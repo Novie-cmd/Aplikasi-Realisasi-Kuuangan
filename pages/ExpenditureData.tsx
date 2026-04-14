@@ -28,11 +28,19 @@ const ExpenditureDataPage: React.FC<Props> = ({ data, setData }) => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-        const formattedData: ExpenditureData[] = jsonData.map((row, index) => ({
-          id: `spend-${Date.now()}-${index}`,
-          kode_belanja: row['Kode Belanja'] || row.kode_belanja || '',
-          belanja: row.Belanja || row.belanja || '',
-        }));
+        const sanitizeId = (id: string) => id.replace(/[\/\.#$\[\]]/g, '_').replace(/\s+/g, '_');
+
+        const formattedData: ExpenditureData[] = jsonData.map((row, index) => {
+          const kode_belanja = String(row['Kode Belanja'] || row.kode_belanja || '').trim();
+          const rawId = `spend-${kode_belanja}`;
+          const id = sanitizeId(rawId) || `spend-${Date.now()}-${index}`;
+          
+          return {
+            id,
+            kode_belanja,
+            belanja: String(row.Belanja || row.belanja || '').trim(),
+          };
+        });
 
         setData([...data, ...formattedData]);
         setImportStatus(`Berhasil mengimpor ${formattedData.length} baris data belanja.`);

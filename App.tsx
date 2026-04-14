@@ -156,6 +156,7 @@ const App: React.FC = () => {
       setMasterData(freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data master", err);
+      alert("Gagal menyimpan data master ke server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }
@@ -212,6 +213,7 @@ const App: React.FC = () => {
       setRealizationData(freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi", err);
+      alert("Gagal menyimpan data realisasi ke server. Silakan periksa koneksi internet Anda.");
     } finally {
       setIsSyncing(false);
     }
@@ -262,8 +264,14 @@ const App: React.FC = () => {
   const updateSpendingData = async (newData: ExpenditureData[]) => {
     setIsSyncing(true);
     setSpendingData(newData);
-    await DataService.saveSpendingData(newData);
-    setIsSyncing(false);
+    try {
+      await DataService.saveSpendingData(newData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data belanja", err);
+      alert("Gagal menyimpan data belanja ke server.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   if (isLoading) {

@@ -60,6 +60,8 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
+        const sanitizeId = (id: string) => id.replace(/[\/\.#$\[\]]/g, '_').replace(/\s+/g, '_');
+
         const formattedData: MasterData[] = jsonData.map((row, index) => {
           const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
           const kode_program = String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim();
@@ -68,7 +70,8 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
           const kode_belanja = String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim();
           
           // Deterministic ID to prevent duplicates on re-upload
-          const id = `m-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}`.replace(/\s+/g, '_');
+          const rawId = `m-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}`;
+          const id = sanitizeId(rawId);
 
           return {
             id: id || `master-${Date.now()}-${index}`,

@@ -203,6 +203,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
+        const sanitizeId = (id: string) => id.replace(/[\/\.#$\[\]]/g, '_').replace(/\s+/g, '_');
+
         const formattedData: RealizationData[] = jsonData.map((row, index) => {
           const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
           const kode_program = String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim();
@@ -213,7 +215,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
           
           // Deterministic ID for realization if possible, otherwise use index
-          const id = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`.replace(/\s+/g, '_');
+          const rawId = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`;
+          const id = sanitizeId(rawId);
 
           return {
             id,
