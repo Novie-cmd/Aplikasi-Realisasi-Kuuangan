@@ -11,10 +11,19 @@ interface Props {
   realizationData: RealizationData[];
 }
 
-type ReportLevel = 'program' | 'kegiatan' | 'sub_kegiatan';
+type ReportLevel = 'bidang' | 'program' | 'kegiatan' | 'sub_kegiatan';
+
+const BIDANG_MAP: Record<string, string> = {
+  "PROGRAM PENUNJANG URUSAN PEMERINTAHAN DAERAH PROVINSI": "Sekretariat",
+  "PROGRAM PEMBERDAYAAN DAN PENGAWASAN ORGANISASI KEMASYARAKATAN": "Bidang Wasnas",
+  "PROGRAM PEMBINAAN DAN PENGEMBANGAN KETAHANAN EKONOMI, SOSIAL, DAN BUDAYA": "Bidang Wasbang",
+  "PROGRAM PENINGKATAN KEWASPADAAN NASIONAL DAN PENINGKATAN KUALITAS DAN FASILITASI PENANGANAN KONFLIK SOSIAL": "Bidang Wasbang",
+  "PROGRAM PENGUATAN IDEOLOGI PANCASILA DAN KARAKTER KEBANGSAAN": "Bidang Poldagri",
+  "PROGRAM PENINGKATAN PERAN PARTAI POLITIK DAN LEMBAGA PENDIDIKAN MELALUI PENDIDIKAN POLITIK DAN PENGEMBANGAN ETIKA SERTA BUDAYA POLITIK": "Bidang Poldagri",
+};
 
 const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
-  const [level, setLevel] = useState<ReportLevel>('program');
+  const [level, setLevel] = useState<ReportLevel>('bidang');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
   const [selectedBelanja, setSelectedBelanja] = useState<string>('all');
@@ -80,7 +89,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       const skpdClean = clean(m.skpd);
 
       // Tentukan kunci agregasi berdasarkan level yang dipilih
-      if (level === 'program') {
+      if (level === 'bidang') {
+        name = BIDANG_MAP[m.program.toUpperCase()] || "LAINNYA";
+        key = `bidang|${name}`;
+        kode = "BIDANG";
+      } else if (level === 'program') {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}`;
         name = m.program;
         kode = m.kode_program;
@@ -152,12 +165,16 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
       };
     });
 
-    // 4. Filter berdasarkan pencarian
-    return Object.values(aggregated).filter(item => 
-      clean(item.name).includes(clean(searchTerm)) || 
-      clean(item.kode).includes(clean(searchTerm)) ||
-      clean(item.skpd).includes(clean(searchTerm))
-    );
+    // 4. Filter berdasarkan pencarian dan pengecualian "LAINNYA" untuk level bidang
+    return Object.values(aggregated).filter(item => {
+      const matchesSearch = clean(item.name).includes(clean(searchTerm)) || 
+                           clean(item.kode).includes(clean(searchTerm)) ||
+                           clean(item.skpd).includes(clean(searchTerm));
+      
+      const isOthersBidang = level === 'bidang' && item.name === 'LAINNYA';
+      
+      return matchesSearch && !isOthersBidang;
+    });
   }, [masterData, realizationData, level, searchTerm, selectedSubKegiatan, selectedBelanja]);
 
   const validationAlerts = useMemo(() => {
@@ -180,6 +197,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
   const filteredDetails = useMemo(() => {
     if (!detailView) return [];
     return realizationData.filter(r => {
+      const rBidang = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+      const rKeyBidang = `bidang|${rBidang}`;
       const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
       const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
       const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
@@ -190,6 +209,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
         return rKeySub === targetKey;
       }
 
+      if (detailView.level === 'bidang') return rKeyBidang === targetKey;
       if (detailView.level === 'program') return rKeyProgram === targetKey;
       if (detailView.level === 'kegiatan') return rKeyKegiatan === targetKey;
       return rKeySub === targetKey;
@@ -248,12 +268,12 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border">
-            {['program', 'kegiatan', 'sub_kegiatan'].map((l) => (
+          <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border overflow-x-auto no-scrollbar">
+            {['bidang', 'program', 'kegiatan', 'sub_kegiatan'].map((l) => (
               <button 
                 key={l} 
                 onClick={() => setLevel(l as any)} 
-                className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all ${level === l ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all whitespace-nowrap ${level === l ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {l.replace('_', ' ')}
               </button>
