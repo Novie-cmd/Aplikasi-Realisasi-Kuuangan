@@ -12,10 +12,21 @@ interface Props {
   spendingData: ExpenditureData[];
 }
 
+const BIDANG_MAP: Record<string, string> = {
+  "PROGRAM PENUNJANG URUSAN PEMERINTAHAN DAERAH PROVINSI": "Sekretariat",
+  "PENUNJANG URUSAN PEMERINTAHAN DAERAH": "Sekretariat",
+  "PROGRAM PEMBERDAYAAN DAN PENGAWASAN ORGANISASI KEMASYARAKATAN": "Bidang Poldagri",
+  "PROGRAM PEMBINAAN DAN PENGEMBANGAN KETAHANAN EKONOMI, SOSIAL, DAN BUDAYA": "Bidang Wasbang",
+  "PEMBINAAN KETAHANAN EKONOMI, SOSIAL, BUDAYA & KEWASPADAAN NASIONAL": "Bidang Wasbang",
+  "PROGRAM PENINGKATAN KEWASPADAAN NASIONAL DAN PENINGKATAN KUALITAS DAN FASILITASI PENANGANAN KONFLIK SOSIAL": "Bidang Wasnas",
+  "PROGRAM PENGUATAN IDEOLOGI PANCASILA DAN KARAKTER KEBANGSAAN": "Bidang Wasbang",
+  "PROGRAM PENINGKATAN PERAN PARTAI POLITIK DAN LEMBAGA PENDIDIKAN MELALUI PENDIDIKAN POLITIK DAN PENGEMBANGAN ETIKA SERTA BUDAYA POLITIK": "Bidang Poldagri",
+};
+
 const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData }) => {
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  const [activeTab, setActiveTab] = useState<'visual' | 'table_skpd' | 'table_belanja'>('visual');
+  const [activeTab, setActiveTab] = useState<'visual' | 'table_bidang' | 'table_belanja'>('visual');
   const [detailSearch, setDetailSearch] = useState('');
 
   // Fungsi normalisasi tingkat tinggi untuk membersihkan karakter aneh dari Excel
@@ -76,26 +87,28 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     });
 
     masterData.forEach(m => {
-      if (!groups[m.skpd]) groups[m.skpd] = { name: m.skpd, anggaran: 0, realisasi: 0 };
-      groups[m.skpd].anggaran += Number(m.anggaran) || 0;
+      const bidangName = BIDANG_MAP[m.program.toUpperCase()] || "LAINNYA";
+      if (!groups[bidangName]) groups[bidangName] = { name: bidangName, anggaran: 0, realisasi: 0 };
+      groups[bidangName].anggaran += Number(m.anggaran) || 0;
       
       const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
       if (realizationMap[mKey]) {
-        groups[m.skpd].realisasi += realizationMap[mKey];
+        groups[bidangName].realisasi += realizationMap[mKey];
         delete realizationMap[mKey];
       }
-      groups[m.skpd].realisasi += (Number(m.realisasi) || 0);
+      groups[bidangName].realisasi += (Number(m.realisasi) || 0);
     });
 
-    // Tambahkan realisasi anomali ke SKPD terkait di chart
+    // Tambahkan realisasi anomali ke bidang terkait di chart
     Object.entries(realizationMap).forEach(([key, val]) => {
       const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === key);
-      const skpdNameRaw = original?.skpd || 'LAINNYA';
-      if (!groups[skpdNameRaw]) groups[skpdNameRaw] = { name: skpdNameRaw, anggaran: 0, realisasi: 0 };
-      groups[skpdNameRaw].realisasi += val;
+      const bidangName = BIDANG_MAP[original?.program.toUpperCase() || ''] || 'LAINNYA';
+      if (!groups[bidangName]) groups[bidangName] = { name: bidangName, anggaran: 0, realisasi: 0 };
+      groups[bidangName].realisasi += val;
     });
 
-    return Object.values(groups);
+    // Filter "LAINNYA" out if it's empty or requested (keeping it consistent with reports)
+    return Object.values(groups).filter(g => g.name !== 'LAINNYA' || g.anggaran > 0 || g.realisasi > 0);
   }, [masterData, realizationData]);
 
   const pieData = [
@@ -113,7 +126,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     setLoadingAi(false);
   };
 
-  const filteredSkpdData = useMemo(() => {
+  const filteredBidangData = useMemo(() => {
     return chartData.filter(item => 
       item.name.toLowerCase().includes(detailSearch.toLowerCase())
     ).sort((a, b) => b.anggaran - a.anggaran);
@@ -209,10 +222,10 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             <BarChart3 size={16} /> Visualisasi
           </button>
           <button 
-            onClick={() => setActiveTab('table_skpd')}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_skpd' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('table_bidang')}
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_bidang' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            <Table size={16} /> Rincian SKPD
+            <Table size={16} /> Rincian Bidang
           </button>
           <button 
             onClick={() => setActiveTab('table_belanja')}
@@ -314,9 +327,9 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
           </motion.div>
         )}
 
-        {activeTab === 'table_skpd' && (
+        {activeTab === 'table_bidang' && (
           <motion.div 
-            key="table_skpd"
+            key="table_bidang"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -326,7 +339,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
               <table className="w-full text-left border-collapse">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama SKPD</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Bidang</th>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Realisasi</th>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Persentase</th>
@@ -334,7 +347,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredSkpdData.map((item, idx) => {
+                  {filteredBidangData.map((item, idx) => {
                     const pct = item.anggaran > 0 ? (item.realisasi / item.anggaran) * 100 : 0;
                     return (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors">
