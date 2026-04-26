@@ -204,6 +204,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
         const sanitizeId = (id: string) => id.replace(/[\/\.#$\[\]]/g, '_').replace(/\s+/g, '_');
+        const importSessionId = Date.now();
 
         const formattedData: RealizationData[] = jsonData.map((row, index) => {
           const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
@@ -214,8 +215,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const realisasi = parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']));
           const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
           
-          // Deterministic ID for realization if possible, otherwise use index
-          const rawId = `r-${kode_skpd}-${kode_program}-${kode_kegiatan}-${kode_sub_kegiatan}-${kode_belanja}-${realisasi}-${keterangan_dokumen}-${index}`;
+          // Use import session timestamp + index to ensure uniqueness across different uploads
+          const rawId = `r-${importSessionId}-${index}`;
           const id = sanitizeId(rawId);
 
           return {
@@ -235,18 +236,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           };
         });
 
-        const combinedData = [...data];
-        formattedData.forEach(newItem => {
-          const existingIndex = combinedData.findIndex(item => item.id === newItem.id);
-          if (existingIndex > -1) {
-            combinedData[existingIndex] = newItem;
-          } else {
-            combinedData.push(newItem);
-          }
-        });
-        setData(combinedData);
+        // Always append new data to existing data
+        setData([...data, ...formattedData]);
 
-        setImportStatus(`Berhasil mengimpor ${formattedData.length} baris realisasi.`);
+        setImportStatus(`Berhasil menambah ${formattedData.length} baris realisasi baru.`);
         setTimeout(() => setImportStatus(null), 3000);
       } catch (err) {
         console.error(err);
