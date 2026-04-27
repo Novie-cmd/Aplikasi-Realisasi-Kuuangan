@@ -461,8 +461,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData }) => {
                       </div>
                     </div>
 
-                    <div className="border rounded-xl overflow-hidden">
-                      <table className="w-full text-left border-collapse">
+                    <div className="border rounded-xl overflow-hidden overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[500px]">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">No</th>

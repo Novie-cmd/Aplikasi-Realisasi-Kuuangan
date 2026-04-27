@@ -336,7 +336,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Bidang</th>
@@ -381,7 +381,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode</th>
