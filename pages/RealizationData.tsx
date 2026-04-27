@@ -336,17 +336,19 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               <CloseIcon size={20} />
             </button>
           </div>
-          <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-            <SearchableSelect 
-              label="Sub Kegiatan"
-              placeholder="Pilih Sub Kegiatan"
-              options={subKegiatanOptions}
-              value={formData.sub_kegiatan}
-              onChange={handleSubKegiatanChange}
-              showAll={false}
-            />
+          <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-end">
+            <div className="md:col-span-1 lg:col-span-3">
+              <SearchableSelect 
+                label="Sub Kegiatan"
+                placeholder="Pilih Sub Kegiatan"
+                options={subKegiatanOptions}
+                value={formData.sub_kegiatan}
+                onChange={handleSubKegiatanChange}
+                showAll={false}
+              />
+            </div>
 
-            <div className="space-y-1">
+            <div className="lg:col-span-2 space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Sub Kegiatan</label>
               <input 
                 type="text" 
@@ -357,16 +359,18 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               />
             </div>
 
-            <SearchableSelect 
-              label="Belanja"
-              placeholder="Pilih Belanja"
-              options={belanjaOptions}
-              value={formData.belanja}
-              onChange={handleBelanjaChange}
-              showAll={false}
-            />
+            <div className="md:col-span-1 lg:col-span-3">
+              <SearchableSelect 
+                label="Belanja"
+                placeholder="Pilih Belanja"
+                options={belanjaOptions}
+                value={formData.belanja}
+                onChange={handleBelanjaChange}
+                showAll={false}
+              />
+            </div>
 
-            <div className="space-y-1">
+            <div className="lg:col-span-4 space-y-1">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
                 {formData.sub_kegiatan && (
@@ -392,7 +396,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               )}
             </div>
 
-            <div className="lg:col-span-2 space-y-1">
+            <div className="lg:col-span-8 space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</label>
               <input 
                 type="text" 
@@ -403,10 +407,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               />
             </div>
 
-            <div className="lg:col-span-4 flex justify-end">
+            <div className="lg:col-span-4">
               <button 
                 type="submit"
-                className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
+                className="w-full bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
               >
                 <Save size={18} /> Simpan Realisasi
               </button>
