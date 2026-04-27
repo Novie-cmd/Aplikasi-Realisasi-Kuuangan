@@ -68,26 +68,38 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
   };
 
   const sisaSpd = useMemo(() => {
-    if (!formData.sub_kegiatan || !formData.belanja) return 0;
+    if (!formData.sub_kegiatan) return { total: 0, specific: 0, showSpecific: false };
     
-    // 1. Get Pagu SPD from Master Data
-    const masterMatch = masterData.find(m => 
-      m.sub_kegiatan === formData.sub_kegiatan && 
-      m.belanja === formData.belanja
-    );
-    const paguSpd = masterMatch ? masterMatch.pagu_spd : 0;
+    // 1. Calculate for the entire Sub Kegiatan
+    const masterSubItems = masterData.filter(m => m.sub_kegiatan === formData.sub_kegiatan);
+    const paguSpdSub = masterSubItems.reduce((sum, m) => sum + (m.pagu_spd || 0), 0);
+    const totalRealisasiSub = data
+      .filter(r => r.sub_kegiatan === formData.sub_kegiatan && r.id !== editingId)
+      .reduce((sum, r) => sum + (r.realisasi || 0), 0);
+    const sisaSub = paguSpdSub - totalRealisasiSub;
+
+    if (!formData.belanja) return { total: sisaSub, specific: 0, showSpecific: false };
+
+    // 2. Calculate specifically for the selected Belanja
+    const masterMatch = masterSubItems.find(m => m.belanja === formData.belanja);
+    const paguSpdSpec = masterMatch ? masterMatch.pagu_spd : 0;
     
-    // 2. Calculate Total Realization from current input data for this specific sub-kegiatan + belanja
-    const totalRealisasiExisting = data
+    const totalRealisasiSpec = data
       .filter(r => 
-        r.kode_sub_kegiatan === formData.kode_sub_kegiatan && 
-        r.kode_belanja === formData.kode_belanja &&
+        r.sub_kegiatan === formData.sub_kegiatan && 
+        r.belanja === formData.belanja &&
         r.id !== editingId
       )
       .reduce((sum, r) => sum + (r.realisasi || 0), 0);
       
-    return paguSpd - totalRealisasiExisting;
-  }, [formData.sub_kegiatan, formData.belanja, formData.kode_sub_kegiatan, formData.kode_belanja, masterData, data, editingId]);
+    return { 
+      total: sisaSub, 
+      specific: paguSpdSpec - totalRealisasiSpec, 
+      showSpecific: true 
+    };
+  }, [formData.sub_kegiatan, formData.belanja, masterData, data, editingId]);
+
+  const currentSisa = sisaSpd.showSpecific ? sisaSpd.specific : sisaSpd.total;
 
   const handleAddManual = (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,9 +369,9 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             <div className="space-y-1">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
-                {formData.belanja && (
-                  <span className={`text-[10px] font-bold uppercase ${sisaSpd <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
-                    Sisa SPD: Rp {formatIDR(sisaSpd)}
+                {formData.sub_kegiatan && (
+                  <span className={`text-[10px] font-bold uppercase ${currentSisa <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
+                    {sisaSpd.showSpecific ? 'Sisa Akun:' : 'Total Sisa Sub:'} Rp {formatIDR(currentSisa)}
                   </span>
                 )}
               </div>
@@ -369,11 +381,11 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
                   type="number" 
                   value={formData.realisasi || ''}
                   onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${formData.realisasi > sisaSpd ? 'border-red-300 bg-red-50 text-red-600 focus:ring-red-500' : 'focus:ring-indigo-500 text-emerald-600'}`}
+                  className={`w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${formData.realisasi > currentSisa ? 'border-red-300 bg-red-50 text-red-600 focus:ring-red-500' : 'focus:ring-indigo-500 text-emerald-600'}`}
                   placeholder="0"
                 />
               </div>
-              {formData.realisasi > sisaSpd && (
+              {formData.realisasi > currentSisa && currentSisa > 0 && (
                 <p className="text-[9px] text-red-500 font-bold italic mt-1 flex items-center gap-1">
                   <AlertCircle size={10} /> Melebihi sisa SPD!
                 </p>
