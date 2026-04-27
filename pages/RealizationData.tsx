@@ -67,6 +67,28 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
     });
   };
 
+  const sisaSpd = useMemo(() => {
+    if (!formData.sub_kegiatan || !formData.belanja) return 0;
+    
+    // 1. Get Pagu SPD from Master Data
+    const masterMatch = masterData.find(m => 
+      m.sub_kegiatan === formData.sub_kegiatan && 
+      m.belanja === formData.belanja
+    );
+    const paguSpd = masterMatch ? masterMatch.pagu_spd : 0;
+    
+    // 2. Calculate Total Realization from current input data for this specific sub-kegiatan + belanja
+    const totalRealisasiExisting = data
+      .filter(r => 
+        r.kode_sub_kegiatan === formData.kode_sub_kegiatan && 
+        r.kode_belanja === formData.kode_belanja &&
+        r.id !== editingId
+      )
+      .reduce((sum, r) => sum + (r.realisasi || 0), 0);
+      
+    return paguSpd - totalRealisasiExisting;
+  }, [formData.sub_kegiatan, formData.belanja, formData.kode_sub_kegiatan, formData.kode_belanja, masterData, data, editingId]);
+
   const handleAddManual = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.sub_kegiatan || !formData.belanja || formData.realisasi <= 0) {
@@ -333,17 +355,29 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             />
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
+                {formData.belanja && (
+                  <span className={`text-[10px] font-bold uppercase ${sisaSpd <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
+                    Sisa SPD: Rp {formatIDR(sisaSpd)}
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
                 <input 
                   type="number" 
                   value={formData.realisasi || ''}
                   onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
-                  className="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-emerald-600"
+                  className={`w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${formData.realisasi > sisaSpd ? 'border-red-300 bg-red-50 text-red-600 focus:ring-red-500' : 'focus:ring-indigo-500 text-emerald-600'}`}
                   placeholder="0"
                 />
               </div>
+              {formData.realisasi > sisaSpd && (
+                <p className="text-[9px] text-red-500 font-bold italic mt-1 flex items-center gap-1">
+                  <AlertCircle size={10} /> Melebihi sisa SPD!
+                </p>
+              )}
             </div>
 
             <div className="lg:col-span-2 space-y-1">
