@@ -371,10 +371,10 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </div>
 
             <div className="lg:col-span-4 space-y-1">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
                 {formData.sub_kegiatan && (
-                  <span className={`text-[10px] font-bold uppercase ${currentSisa <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${currentSisa <= 0 ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-600'}`}>
                     {sisaSpd.showSpecific ? 'Sisa Akun:' : 'Total Sisa Sub:'} Rp {formatIDR(currentSisa)}
                   </span>
                 )}
