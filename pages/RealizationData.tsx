@@ -199,14 +199,17 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
   };
 
   const tableRef = useRef<HTMLDivElement>(null);
+  const topScrollRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (tableRef.current) {
-      const scrollAmount = 400;
-      tableRef.current.scrollBy({ 
-        left: direction === 'left' ? -scrollAmount : scrollAmount, 
-        behavior: 'smooth' 
-      });
+  const handleTopScroll = () => {
+    if (topScrollRef.current && tableRef.current) {
+      tableRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleTableScroll = () => {
+    if (topScrollRef.current && tableRef.current) {
+      topScrollRef.current.scrollLeft = tableRef.current.scrollLeft;
     }
   };
 
@@ -437,10 +440,18 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-0.5">
+        <div 
+          ref={topScrollRef}
+          onScroll={handleTopScroll}
+          className="overflow-x-auto h-4 bg-gray-50 rounded-t-xl border border-b-0 border-gray-200"
+        >
+          <div className="min-w-[1500px] h-px"></div>
+        </div>
         <div 
           ref={tableRef}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
+          onScroll={handleTableScroll}
+          className="bg-white rounded-b-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
         >
           <table className="w-full text-left min-w-[1500px]">
           <thead className="bg-gray-50 border-b">
@@ -489,22 +500,6 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="flex justify-center items-center gap-4 py-2 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-        <button 
-          onClick={() => scroll('left')}
-          className="p-2 bg-white rounded-full shadow-sm border hover:bg-gray-50 text-gray-600 transition-all flex items-center gap-1 text-xs font-bold"
-        >
-          <ChevronLeft size={16} /> Geser Kiri
-        </button>
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Navigasi Tabel</span>
-        <button 
-          onClick={() => scroll('right')}
-          className="p-2 bg-white rounded-full shadow-sm border hover:bg-gray-50 text-gray-600 transition-all flex items-center gap-1 text-xs font-bold"
-        >
-          Geser Kanan <ChevronRight size={16} />
-        </button>
       </div>
     </div>
   </div>
