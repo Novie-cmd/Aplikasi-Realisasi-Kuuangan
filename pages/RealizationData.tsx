@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo } from 'react';
-import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
+import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { RealizationData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -196,6 +196,18 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       keterangan_dokumen: ''
     });
     setShowForm(false);
+  };
+
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (tableRef.current) {
+      const scrollAmount = 400;
+      tableRef.current.scrollBy({ 
+        left: direction === 'left' ? -scrollAmount : scrollAmount, 
+        behavior: 'smooth' 
+      });
+    }
   };
 
   const parseNumber = (val: any): number => {
@@ -425,8 +437,12 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-        <table className="w-full text-left min-w-[1200px]">
+      <div className="space-y-2">
+        <div 
+          ref={tableRef}
+          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
+        >
+          <table className="w-full text-left min-w-[1500px]">
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
@@ -474,8 +490,25 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           </tbody>
         </table>
       </div>
+
+      <div className="flex justify-center items-center gap-4 py-2 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+        <button 
+          onClick={() => scroll('left')}
+          className="p-2 bg-white rounded-full shadow-sm border hover:bg-gray-50 text-gray-600 transition-all flex items-center gap-1 text-xs font-bold"
+        >
+          <ChevronLeft size={16} /> Geser Kiri
+        </button>
+        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Navigasi Tabel</span>
+        <button 
+          onClick={() => scroll('right')}
+          className="p-2 bg-white rounded-full shadow-sm border hover:bg-gray-50 text-gray-600 transition-all flex items-center gap-1 text-xs font-bold"
+        >
+          Geser Kanan <ChevronRight size={16} />
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default RealizationDataPage;
