@@ -132,6 +132,14 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     ).sort((a, b) => b.anggaran - a.anggaran);
   }, [chartData, detailSearch]);
 
+  const filteredBidangTotals = useMemo(() => {
+    return filteredBidangData.reduce((acc, curr) => ({
+      anggaran: acc.anggaran + curr.anggaran,
+      realisasi: acc.realisasi + curr.realisasi,
+      sisa: acc.sisa + (curr.anggaran - curr.realisasi)
+    }), { anggaran: 0, realisasi: 0, sisa: 0 });
+  }, [filteredBidangData]);
+
   const belanjaStats = useMemo(() => {
     const groups: Record<string, { name: string; kode: string; anggaran: number; realisasi: number }> = {};
     
@@ -367,6 +375,19 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                     );
                   })}
                 </tbody>
+                <tfoot className="bg-gray-50 border-t">
+                  <tr className="font-black text-gray-900">
+                    <td className="px-6 py-4 text-sm uppercase tracking-widest">Total Keseluruhan</td>
+                    <td className="px-6 py-4 text-sm text-right">{formatIDR(filteredBidangTotals.anggaran)}</td>
+                    <td className="px-6 py-4 text-sm text-right text-emerald-600">{formatIDR(filteredBidangTotals.realisasi)}</td>
+                    <td className="px-6 py-4 text-center text-xs text-indigo-600">
+                      {filteredBidangTotals.anggaran > 0 
+                        ? ((filteredBidangTotals.realisasi / filteredBidangTotals.anggaran) * 100).toFixed(1) 
+                        : '0.0'}%
+                    </td>
+                    <td className="px-6 py-4 text-sm text-right text-rose-600">{formatIDR(filteredBidangTotals.sisa)}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </motion.div>

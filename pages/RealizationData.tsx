@@ -444,9 +444,9 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         <div 
           ref={topScrollRef}
           onScroll={handleTopScroll}
-          className="overflow-x-auto h-4 bg-gray-50 rounded-t-xl border border-b-0 border-gray-200"
+          className="overflow-x-auto h-5 bg-gray-50/50 rounded-t-xl border border-b-0 border-gray-200"
         >
-          <div className="min-w-[1500px] h-px"></div>
+          <div className="min-w-[1500px] h-1"></div>
         </div>
         <div 
           ref={tableRef}

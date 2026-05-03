@@ -22,19 +22,24 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
     }
     ::-webkit-scrollbar-track {
-      background: #f8fafc;
+      background: #f1f5f9;
     }
     ::-webkit-scrollbar-thumb {
-      background: #818cf8;
-      border-radius: 10px;
-      border: 2px solid #f8fafc;
+      background: #3b82f6;
+      border-radius: 12px;
+      border: 3px solid #f1f5f9;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #4f46e5;
+      background: #2563eb;
+    }
+    /* Firefox support */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3b82f6 #f1f5f9;
     }
   </style>
 <script type="importmap">
