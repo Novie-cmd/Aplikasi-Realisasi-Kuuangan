@@ -397,8 +397,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
                 <input 
-                  type="number" 
-                  value={formData.realisasi || ''}
+                  type="text" 
+                  value={formData.realisasi ? formatIDR(formData.realisasi) : ''}
                   onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
                   className={`w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${formData.realisasi > currentSisa ? 'border-red-300 bg-red-50 text-red-600 focus:ring-red-500' : 'focus:ring-indigo-500 text-emerald-600'}`}
                   placeholder="0"

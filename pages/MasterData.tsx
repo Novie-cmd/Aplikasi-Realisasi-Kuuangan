@@ -162,8 +162,8 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
                 <input className="border p-2 rounded" placeholder="Kode Sub Kegiatan" value={editingItem.kode_sub_kegiatan} onChange={e => setEditingItem({...editingItem, kode_sub_kegiatan: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Kode Belanja" value={editingItem.kode_belanja} onChange={e => setEditingItem({...editingItem, kode_belanja: e.target.value})} />
                 <input className="border p-2 rounded" placeholder="Uraian" value={editingItem.belanja} onChange={e => setEditingItem({...editingItem, belanja: e.target.value})} />
-                <input className="border p-2 rounded" type="number" placeholder="Anggaran" value={editingItem.anggaran} onChange={e => setEditingItem({...editingItem, anggaran: Number(e.target.value)})} />
-                <input className="border p-2 rounded" type="number" placeholder="Pagu SPD" value={editingItem.pagu_spd} onChange={e => setEditingItem({...editingItem, pagu_spd: Number(e.target.value)})} />
+                <input className="border p-2 rounded" type="text" placeholder="Anggaran" value={editingItem.anggaran ? formatIDR(editingItem.anggaran) : ''} onChange={e => setEditingItem({...editingItem, anggaran: parseNumber(e.target.value)})} />
+                <input className="border p-2 rounded" type="text" placeholder="Pagu SPD" value={editingItem.pagu_spd ? formatIDR(editingItem.pagu_spd) : ''} onChange={e => setEditingItem({...editingItem, pagu_spd: parseNumber(e.target.value)})} />
               </div>
               <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                 <Save size={18} /> Simpan
