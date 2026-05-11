@@ -169,6 +169,13 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     ).sort((a, b) => b.anggaran - a.anggaran);
   }, [masterData, realizationData, detailSearch]);
 
+  const belanjaTotals = useMemo(() => {
+    return belanjaStats.reduce((acc, curr) => ({
+      anggaran: acc.anggaran + curr.anggaran,
+      realisasi: acc.realisasi + curr.realisasi,
+    }), { anggaran: 0, realisasi: 0 });
+  }, [belanjaStats]);
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -430,6 +437,18 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                     );
                   })}
                 </tbody>
+                <tfoot className="bg-gray-50 border-t">
+                  <tr className="font-black text-gray-900">
+                    <td colSpan={2} className="px-6 py-4 text-sm uppercase tracking-widest">Sub Total</td>
+                    <td className="px-6 py-4 text-sm text-right">{formatIDR(belanjaTotals.anggaran)}</td>
+                    <td className="px-6 py-4 text-sm text-right text-indigo-600">{formatIDR(belanjaTotals.realisasi)}</td>
+                    <td className="px-6 py-4 text-center text-xs text-indigo-600">
+                      {belanjaTotals.anggaran > 0 
+                        ? ((belanjaTotals.realisasi / belanjaTotals.anggaran) * 100).toFixed(1) 
+                        : '0.0'}%
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </motion.div>
