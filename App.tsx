@@ -454,7 +454,7 @@ const App: React.FC = () => {
             {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} replaceData={replaceRealizationData} deleteRow={deleteRealizationData} clearAll={clearRealizationData} masterData={masterData} />}
             {activePage === 'hibah' && <HibahDataPage data={hibahData} setData={updateHibahData} replaceData={replaceHibahData} deleteRow={deleteHibahData} clearAll={clearHibahData} masterData={masterData} />}
             {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
-            {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} />}
+            {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} hibahData={hibahData} />}
           </div>
         </main>
       </div>
