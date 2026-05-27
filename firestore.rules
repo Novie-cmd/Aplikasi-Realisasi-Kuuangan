@@ -67,7 +67,10 @@ service cloud.firestore {
              data.sisa_spd is number &&
              data.sisa_realisasi is number &&
              (!('kode_kegiatan' in data) || data.kode_kegiatan is string) &&
-             (!('kode_sub_kegiatan' in data) || data.kode_sub_kegiatan is string);
+             (!('kode_sub_kegiatan' in data) || data.kode_sub_kegiatan is string) &&
+             (!('kode_rekening' in data) || data.kode_rekening is string) &&
+             (!('uraian' in data) || data.uraian is string) &&
+             (!('penerima_hibah' in data) || data.penerima_hibah is string);
     }
 
     // ===============================================================

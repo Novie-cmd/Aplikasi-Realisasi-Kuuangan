@@ -1,5 +1,5 @@
-import React, { useRef, useState, useMemo } from 'react';
-import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon } from 'lucide-react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
+import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign, Plus, Save, Edit2, X as CloseIcon, ChevronDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { HibahData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
@@ -26,6 +26,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
     kode_kegiatan: '',
     sub_kegiatan: '',
     kode_sub_kegiatan: '',
+    kode_rekening: '',
+    uraian: '',
+    penerima_hibah: '',
     anggaran: 0,
     spd: 0,
     realisasi: 0,
@@ -46,6 +49,49 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
         .filter(Boolean)
     )).sort();
   }, [masterData, formData.kegiatan]);
+
+  const uraianSuggestions = useMemo(() => {
+    let filteredMaster = masterData;
+    if (formData.sub_kegiatan) {
+      filteredMaster = masterData.filter(m => m.sub_kegiatan === formData.sub_kegiatan);
+    } else if (formData.kegiatan) {
+      filteredMaster = masterData.filter(m => m.kegiatan === formData.kegiatan);
+    }
+    
+    const uniqueMap = new Map<string, string>();
+    
+    // First, populate from masterData
+    filteredMaster.forEach(m => {
+      if (m.belanja && m.kode_belanja) {
+        uniqueMap.set(m.belanja.trim(), m.kode_belanja.trim());
+      }
+    });
+
+    // Blend in from existing HibahData if not present
+    data.forEach(item => {
+      if (item.uraian && !uniqueMap.has(item.uraian.trim())) {
+        uniqueMap.set(item.uraian.trim(), item.kode_rekening || '');
+      }
+    });
+
+    return Array.from(uniqueMap.entries()).map(([belanja, kode_belanja]) => ({
+      belanja,
+      kode_belanja
+    })).sort((a, b) => a.belanja.localeCompare(b.belanja));
+  }, [masterData, formData.sub_kegiatan, formData.kegiatan, data]);
+
+  const uraianComboRef = useRef<HTMLDivElement>(null);
+  const [showUraianSuggestions, setShowUraianSuggestions] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (uraianComboRef.current && !uraianComboRef.current.contains(event.target as Node)) {
+        setShowUraianSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleKegiatanChange = (val: string) => {
     if (val === 'all') val = '';
@@ -112,6 +158,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
             kode_kegiatan: formData.kode_kegiatan,
             sub_kegiatan: formData.sub_kegiatan,
             kode_sub_kegiatan: formData.kode_sub_kegiatan,
+            kode_rekening: formData.kode_rekening,
+            uraian: formData.uraian,
+            penerima_hibah: formData.penerima_hibah,
             anggaran: formData.anggaran,
             spd: formData.spd,
             realisasi: formData.realisasi,
@@ -130,6 +179,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
         kode_kegiatan: formData.kode_kegiatan,
         sub_kegiatan: formData.sub_kegiatan,
         kode_sub_kegiatan: formData.kode_sub_kegiatan,
+        kode_rekening: formData.kode_rekening,
+        uraian: formData.uraian,
+        penerima_hibah: formData.penerima_hibah,
         anggaran: formData.anggaran,
         spd: formData.spd,
         realisasi: formData.realisasi,
@@ -144,6 +196,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
       kode_kegiatan: '',
       sub_kegiatan: '',
       kode_sub_kegiatan: '',
+      kode_rekening: '',
+      uraian: '',
+      penerima_hibah: '',
       anggaran: 0,
       spd: 0,
       realisasi: 0,
@@ -157,6 +212,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
       kode_kegiatan: row.kode_kegiatan,
       sub_kegiatan: row.sub_kegiatan,
       kode_sub_kegiatan: row.kode_sub_kegiatan,
+      kode_rekening: row.kode_rekening || '',
+      uraian: row.uraian || '',
+      penerima_hibah: row.penerima_hibah || '',
       anggaran: row.anggaran,
       spd: row.spd,
       realisasi: row.realisasi,
@@ -173,6 +231,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
       kode_kegiatan: '',
       sub_kegiatan: '',
       kode_sub_kegiatan: '',
+      kode_rekening: '',
+      uraian: '',
+      penerima_hibah: '',
       anggaran: 0,
       spd: 0,
       realisasi: 0,
@@ -203,7 +264,10 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
       item.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.sub_kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.kode_kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.kode_sub_kegiatan.toLowerCase().includes(searchTerm.toLowerCase())
+      item.kode_sub_kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.kode_rekening || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.uraian || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.penerima_hibah || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm]);
 
@@ -258,6 +322,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
           const kode_kegiatan = String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim();
           const sub_kegiatan = String(findValue(row, ['Sub Kegiatan', 'Sub_Keg', 'Nama Sub Kegiatan']) || '').trim();
           const kode_sub_kegiatan = String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim();
+          const kode_rekening = String(findValue(row, ['Kode Rekening', 'Kd Rekening', 'Kd_Rek', 'Rekening']) || '').trim();
+          const uraian = String(findValue(row, ['Uraian', 'Keterangan', 'Uraian Hibah', 'Deskripsi']) || '').trim();
+          const penerima_hibah = String(findValue(row, ['Penerima Hibah', 'Penerima', 'Penerima_Hibah', 'Nama Penerima', 'Recipient']) || '').trim();
           
           const anggaran = parseNumber(findValue(row, ['Anggaran', 'Pagu Anggaran', 'Angg_Hibah', 'Nilai Anggaran']));
           const spd = parseNumber(findValue(row, ['SPD', 'Pagu SPD', 'Nilai SPD', 'Jumlah SPD']));
@@ -275,6 +342,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
             kode_kegiatan,
             sub_kegiatan,
             kode_sub_kegiatan,
+            kode_rekening,
+            uraian,
+            penerima_hibah,
             anggaran,
             spd,
             realisasi,
@@ -471,6 +541,92 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                 />
               </div>
 
+              {/* Uraian with Combobox list */}
+              <div className="space-y-1 relative" ref={uraianComboRef}>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Uraian
+                </label>
+                <div className="relative">
+                  <input 
+                    type="text"
+                    value={formData.uraian}
+                    onChange={(e) => setFormData({...formData, uraian: e.target.value})}
+                    onFocus={() => setShowUraianSuggestions(true)}
+                    className="w-full p-2 pr-8 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                    placeholder="Pilih/ketik uraian..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowUraianSuggestions(prev => !prev)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    <ChevronDown size={16} className={`transition-transform ${showUraianSuggestions ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
+                {showUraianSuggestions && uraianSuggestions.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+                    {uraianSuggestions
+                      .filter(item => 
+                        item.belanja.toLowerCase().includes((formData.uraian || '').toLowerCase()) ||
+                        item.kode_belanja.toLowerCase().includes((formData.uraian || '').toLowerCase())
+                      )
+                      .map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              uraian: item.belanja,
+                              kode_rekening: item.kode_belanja
+                            });
+                            setShowUraianSuggestions(false);
+                          }}
+                          className="px-4 py-2 text-sm hover:bg-indigo-50 cursor-pointer text-gray-700 border-b last:border-b-0 border-gray-100 flex flex-col gap-0.5"
+                        >
+                          <span className="font-bold truncate">{item.belanja}</span>
+                          <span className="text-[10px] text-indigo-600 font-mono font-bold">{item.kode_belanja}</span>
+                        </div>
+                      ))}
+                    {uraianSuggestions.filter(item => 
+                      item.belanja.toLowerCase().includes((formData.uraian || '').toLowerCase()) ||
+                      item.kode_belanja.toLowerCase().includes((formData.uraian || '').toLowerCase())
+                    ).length === 0 && (
+                      <div className="px-4 py-2 text-xs text-gray-400 italic">
+                        Tidak ada pencocokan (ketik untuk membuat baru)
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Kode Rekening (dibawa Kode Sub Kegiatan) */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Kode Rekening
+                </label>
+                <input 
+                  type="text"
+                  value={formData.kode_rekening}
+                  onChange={(e) => setFormData({...formData, kode_rekening: e.target.value})}
+                  className="w-full p-2 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                  placeholder="Kode Rekening..."
+                />
+              </div>
+
+              {/* Penerima Hibah */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Penerima Hibah
+                </label>
+                <input 
+                  type="text"
+                  value={formData.penerima_hibah}
+                  onChange={(e) => setFormData({...formData, penerima_hibah: e.target.value})}
+                  className="w-full p-2 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                  placeholder="Nama Penerima Hibah..."
+                />
+              </div>
+
               {/* Anggaran */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -581,15 +737,15 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
           onScroll={handleTopScroll}
           className="overflow-x-auto h-5 bg-gray-50/50 rounded-t-xl border border-b-0 border-gray-200"
         >
-          <div className="min-w-[1500px] h-1 animate-in fade-in"></div>
+          <div className="min-w-[1850px] h-1 animate-in fade-in"></div>
         </div>
-
+ 
         <div 
           ref={tableRef}
           onScroll={handleTableScroll}
           className="bg-white rounded-b-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
         >
-          <table className="w-full text-left min-w-[1500px]">
+          <table className="w-full text-left min-w-[1850px]">
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase w-28">Aksi</th>
@@ -597,6 +753,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub</th>
+                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Rekening</th>
+                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Uraian</th>
+                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Penerima Hibah</th>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Anggaran</th>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">SPD</th>
                 <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
@@ -635,6 +794,9 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                       <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_kegiatan}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.sub_kegiatan}>{row.sub_kegiatan}</td>
                       <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_sub_kegiatan}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_rekening || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.uraian}>{row.uraian || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.penerima_hibah}>{row.penerima_hibah || '-'}</td>
                       <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp {formatIDR(row.anggaran)}</td>
                       <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">Rp {formatIDR(row.spd)}</td>
                       <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">Rp {formatIDR(row.realisasi)}</td>
@@ -653,7 +815,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                 })
               ) : (
                 <tr>
-                  <td colSpan={11} className="px-4 py-12 text-sm text-center text-gray-400 italic">
+                  <td colSpan={14} className="px-4 py-12 text-sm text-center text-gray-400 italic">
                     Belum ada data hibah atau tidak ditemukan hasil pencarian.
                   </td>
                 </tr>
@@ -664,7 +826,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
               <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                 <tr className="font-black text-gray-900">
                   <td className="px-4 py-3">Total</td>
-                  <td colSpan={4} className="px-4 py-3 text-xs text-gray-400 tracking-wider">KESELURUHAN DATA HIBAH</td>
+                  <td colSpan={7} className="px-4 py-3 text-xs text-gray-400 tracking-wider">KESELURUHAN DATA HIBAH</td>
                   <td className="px-4 py-3 text-sm text-right">Rp {formatIDR(totals.anggaran)}</td>
                   <td className="px-4 py-3 text-sm text-right text-blue-600">Rp {formatIDR(totals.spd)}</td>
                   <td className="px-4 py-3 text-sm text-right text-emerald-600">Rp {formatIDR(totals.realisasi)}</td>

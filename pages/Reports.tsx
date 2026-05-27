@@ -220,7 +220,10 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       const matchesSearch = clean(item.kegiatan).includes(clean(searchTerm)) || 
                            clean(item.sub_kegiatan).includes(clean(searchTerm)) ||
                            clean(item.kode_kegiatan).includes(clean(searchTerm)) ||
-                           clean(item.kode_sub_kegiatan).includes(clean(searchTerm));
+                           clean(item.kode_sub_kegiatan).includes(clean(searchTerm)) ||
+                           clean(item.kode_rekening || '').includes(clean(searchTerm)) ||
+                           clean(item.uraian || '').includes(clean(searchTerm)) ||
+                           clean(item.penerima_hibah || '').includes(clean(searchTerm));
       return matchesSearch;
     });
   }, [hibahData, selectedHibahKegiatan, selectedHibahSub, searchTerm]);
@@ -274,6 +277,29 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          @page {
+            size: landscape;
+            margin: 6mm;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+            font-size: 8px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide scrollbars during print */
+          .overflow-x-auto {
+            overflow: visible !important;
+          }
+          table {
+            width: 100% !important;
+            table-layout: auto !important;
+          }
+        }
+      `}</style>
       {/* Tab Switcher */}
       <div className="flex bg-gray-100 p-1.5 rounded-2xl border w-fit print:hidden">
         <button
@@ -601,19 +627,22 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 </div>
               </div>
             </div>
-            <table className="w-full text-left min-w-[1200px] print:min-w-0 print:text-[10px]">
+            <table className="w-full text-left min-w-[1350px] print:min-w-0 print:text-[8px]">
               <thead className="bg-gray-50/50 border-b">
                 <tr>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Kegiatan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Kegiatan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Sub Kegiatan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Sub Kegiatan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">SPD</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Realisasi</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa SPD</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa Anggaran</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">%</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Kode Kegiatan</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Nama Kegiatan</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Kode Sub Kegiatan</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Kode Rekening</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Uraian</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Penerima Hibah</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Nama Sub Kegiatan</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Anggaran</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">SPD</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Realisasi</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Sisa SPD</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">Sisa Anggaran</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center print:px-1 print:py-1.5 print:text-[7.5px] print:text-black print:font-bold">%</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -625,17 +654,20 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
                   return (
                     <tr key={idx} className={`hover:bg-gray-50 transition-colors ${isOverSpd ? 'bg-orange-50/50' : ''}`}>
-                      <td className="px-6 py-4 text-xs font-mono font-bold text-gray-500">{row.kode_kegiatan || '-'}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-800 leading-tight max-w-[250px] truncate" title={row.kegiatan}>{row.kegiatan}</td>
-                      <td className="px-6 py-4 text-xs font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700 leading-tight max-w-[250px] truncate" title={row.sub_kegiatan}>{row.sub_kegiatan}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-right text-gray-700">{formatIDR(row.anggaran)}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{formatIDR(row.spd)}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
-                      <td className={`px-6 py-4 text-sm font-bold text-right ${sSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'}`}>{formatIDR(sSpd)}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-right text-red-500">{formatIDR(sReal)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black select-none ${
+                      <td className="px-6 py-4 text-xs font-mono font-bold text-gray-500 print:px-1 print:py-1 print:text-[7px] print:text-black">{row.kode_kegiatan || '-'}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-800 leading-tight max-w-[250px] truncate print:px-1 print:py-1 print:text-[7px] print:text-black print:whitespace-normal print:max-w-none print:break-words font-medium" title={row.kegiatan}>{row.kegiatan}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-amber-600 font-bold print:px-1 print:py-1 print:text-[7px] print:text-black">{row.kode_sub_kegiatan || '-'}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-indigo-600 font-bold print:px-1 print:py-1 print:text-[7px] print:text-black">{row.kode_rekening || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 leading-tight max-w-[200px] truncate print:px-1 print:py-1 print:text-[7px] print:text-black print:whitespace-normal print:max-w-none print:break-words" title={row.uraian}>{row.uraian || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 leading-tight max-w-[200px] truncate print:px-1 print:py-1 print:text-[7px] print:text-black print:whitespace-normal print:max-w-none print:break-words" title={row.penerima_hibah}>{row.penerima_hibah || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 leading-tight max-w-[250px] truncate print:px-1 print:py-1 print:text-[7px] print:text-black print:whitespace-normal print:max-w-none print:break-words" title={row.sub_kegiatan}>{row.sub_kegiatan}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-right text-gray-700 print:px-1 print:py-1 print:text-[7px] print:text-black">{formatIDR(row.anggaran)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-right text-blue-600 print:px-1 print:py-1 print:text-[7px] print:text-black">{formatIDR(row.spd)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-right text-emerald-600 print:px-1 print:py-1 print:text-[7px] print:text-black">{formatIDR(row.realisasi)}</td>
+                      <td className={`px-6 py-4 text-sm font-bold text-right ${sSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'} print:px-1 print:py-1 print:text-[7px] print:text-black`}>{formatIDR(sSpd)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-right text-red-500 print:px-1 print:py-1 print:text-[7px] print:text-black">{formatIDR(sReal)}</td>
+                      <td className="px-6 py-4 text-center print:px-1 print:py-1">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black select-none print:px-1 print:py-0 print:text-[6.5px] ${
                           percent >= 90 ? 'bg-emerald-50 text-emerald-700' :
                           percent >= 50 ? 'bg-blue-50 text-blue-700' : 'bg-rose-50 text-rose-700'
                         }`}>
@@ -648,7 +680,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
                 {filteredHibahReportData.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-400 italic">
+                    <td colSpan={13} className="px-6 py-12 text-center text-gray-400 italic">
                       Tidak ada data laporan hibah yang sesuai dengan kriteria filter.
                     </td>
                   </tr>
@@ -656,15 +688,15 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
                 {/* Hibah totals row */}
                 {filteredHibahReportData.length > 0 && (
-                  <tr className="bg-gray-900 text-white font-black">
-                    <td className="px-6 py-5 text-sm uppercase tracking-widest text-[11px]" colSpan={4}>Total Seluruhnya (Hibah)</td>
-                    <td className="px-6 py-5 text-sm text-right">{formatIDR(hibahTotals.anggaran)}</td>
-                    <td className="px-6 py-5 text-sm text-right text-blue-300">{formatIDR(hibahTotals.spd)}</td>
-                    <td className="px-6 py-5 text-sm text-right text-emerald-300">{formatIDR(hibahTotals.realisasi)}</td>
-                    <td className="px-6 py-5 text-sm text-right text-amber-300">{formatIDR(hibahTotals.sisa_spd)}</td>
-                    <td className="px-6 py-5 text-sm text-right text-red-300">{formatIDR(hibahTotals.sisa_realisasi)}</td>
-                    <td className="px-6 py-5 text-center">
-                      <span className="text-lg font-black">
+                  <tr className="bg-gray-900 text-white font-black print:bg-gray-100 print:text-black">
+                    <td className="px-6 py-5 text-sm uppercase tracking-widest text-[11px] print:px-1 print:py-1.5 print:text-[7.5px]" colSpan={7}>Total Seluruhnya (Hibah)</td>
+                    <td className="px-6 py-5 text-sm text-right print:px-1 print:py-1.5 print:text-[7.5px]">{formatIDR(hibahTotals.anggaran)}</td>
+                    <td className="px-6 py-5 text-sm text-right text-blue-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(hibahTotals.spd)}</td>
+                    <td className="px-6 py-5 text-sm text-right text-emerald-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(hibahTotals.realisasi)}</td>
+                    <td className="px-6 py-5 text-sm text-right text-amber-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(hibahTotals.sisa_spd)}</td>
+                    <td className="px-6 py-5 text-sm text-right text-red-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(hibahTotals.sisa_realisasi)}</td>
+                    <td className="px-6 py-5 text-center print:px-1 print:py-1.5">
+                      <span className="text-lg font-black print:text-[7.5px]">
                         {hibahTotals.anggaran > 0 ? ((hibahTotals.realisasi / hibahTotals.anggaran) * 100).toFixed(1) : 0}%
                       </span>
                     </td>

@@ -51,6 +51,9 @@ export interface HibahData {
   kode_kegiatan: string;
   sub_kegiatan: string;
   kode_sub_kegiatan: string;
+  kode_rekening?: string;
+  uraian?: string;
+  penerima_hibah?: string;
   anggaran: number;
   spd: number;
   realisasi: number;
