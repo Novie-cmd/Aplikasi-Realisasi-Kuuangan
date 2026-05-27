@@ -351,7 +351,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Gift size={20} /></div>
             <div>
@@ -360,17 +360,25 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-lg"><CircleDollarSign size={20} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase">Total Anggaran Dana Hibah</p>
+              <p className="text-xl font-black text-amber-600">Rp {formatIDR(hibahTotals.anggaran)}</p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><CircleDollarSign size={20} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase">Total SPD Dana Hibah</p>
+              <p className="text-xl font-black text-blue-600">Rp {formatIDR(hibahTotals.spd)}</p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><CircleDollarSign size={20} /></div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase">Total Realisasi Hibah</p>
-              <p className="text-xl font-black">Rp {formatIDR(hibahTotals.realisasi)}</p>
+              <p className="text-xl font-black text-emerald-600">Rp {formatIDR(hibahTotals.realisasi)}</p>
             </div>
-          </div>
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><Info size={20} /></div>
-            <p className="text-[10px] text-amber-800 leading-tight font-medium">
-              Sistem menampilkan ringkasan Laporan Dana Hibah berdasarkan data kegiatan, sub kegiatan, anggaran, SPD, dan realisasi yang telah diinput atau di-import.
-            </p>
           </div>
         </div>
       )}
@@ -621,8 +629,11 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 <div>
                   <p><b>Filter Kegiatan:</b> {selectedHibahKegiatan === 'all' ? 'Semua' : selectedHibahKegiatan}</p>
                   <p><b>Filter Sub Kegiatan:</b> {selectedHibahSub === 'all' ? 'Semua' : selectedHibahSub}</p>
+                  <p><b>Total Anggaran Dana Hibah:</b> Rp {formatIDR(hibahTotals.anggaran)}</p>
                 </div>
                 <div className="text-right">
+                  <p><b>Total Realisasi Hibah:</b> Rp {formatIDR(hibahTotals.realisasi)}</p>
+                  <p><b>Persentase Realisasi:</b> {hibahTotals.anggaran > 0 ? ((hibahTotals.realisasi / hibahTotals.anggaran) * 100).toFixed(1) : 0}%</p>
                   <p><b>Tanggal Cetak:</b> {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                 </div>
               </div>
