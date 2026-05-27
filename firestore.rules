@@ -56,6 +56,20 @@ service cloud.firestore {
              data.belanja is string;
     }
 
+    function isValidHibahData(data) {
+      return data.keys().hasAll(['id', 'kegiatan', 'sub_kegiatan', 'anggaran', 'spd', 'realisasi', 'sisa_spd', 'sisa_realisasi']) &&
+             data.id is string &&
+             data.kegiatan is string &&
+             data.sub_kegiatan is string &&
+             data.anggaran is number &&
+             data.spd is number &&
+             data.realisasi is number &&
+             data.sisa_spd is number &&
+             data.sisa_realisasi is number &&
+             (!('kode_kegiatan' in data) || data.kode_kegiatan is string) &&
+             (!('kode_sub_kegiatan' in data) || data.kode_sub_kegiatan is string);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -80,6 +94,12 @@ service cloud.firestore {
     match /spending_data/{id} {
       allow read: if isAuthenticated();
       allow create, update: if isAuthenticated() && isValidSpendingData(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /hibah_data/{id} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidHibahData(request.resource.data);
       allow delete: if isAuthenticated();
     }
   }

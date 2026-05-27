@@ -45,4 +45,18 @@ export interface FinancialSummary {
   persentase: number;
 }
 
-export type Page = 'dashboard' | 'master' | 'spending' | 'reports' | 'realization';
+export interface HibahData {
+  id: string;
+  kegiatan: string;
+  kode_kegiatan: string;
+  sub_kegiatan: string;
+  kode_sub_kegiatan: string;
+  anggaran: number;
+  spd: number;
+  realisasi: number;
+  sisa_spd: number;
+  sisa_realisasi: number;
+  createdAt?: any;
+}
+
+export type Page = 'dashboard' | 'master' | 'spending' | 'reports' | 'realization' | 'hibah';

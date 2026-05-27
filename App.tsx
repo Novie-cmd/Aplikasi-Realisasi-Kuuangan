@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
-import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, Loader2, CloudSync, LogOut, Lock, User, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, Loader2, CloudSync, LogOut, Lock, User, AlertTriangle, Gift } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import MasterDataPage from './pages/MasterData';
 import ExpenditureDataPage from './pages/ExpenditureData';
 import ReportsPage from './pages/Reports';
 import RealizationDataPage from './pages/RealizationData';
-import { MasterData, ExpenditureData, Page, RealizationData } from './types';
+import HibahDataPage from './pages/HibahData';
+import { MasterData, ExpenditureData, Page, RealizationData, HibahData } from './types';
 import { DataService } from './services/dataService';
 import { auth } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User as FirebaseUser } from 'firebase/auth';
@@ -83,6 +84,7 @@ const App: React.FC = () => {
   const [masterData, setMasterData] = useState<MasterData[]>([]);
   const [spendingData, setSpendingData] = useState<ExpenditureData[]>([]);
   const [realizationData, setRealizationData] = useState<RealizationData[]>([]);
+  const [hibahData, setHibahData] = useState<HibahData[]>([]);
 
   // Firebase Auth Listener
   useEffect(() => {
@@ -129,14 +131,16 @@ const App: React.FC = () => {
       setIsLoading(true);
       try {
         await DataService.testConnection();
-        const [m, r, s] = await Promise.all([
+        const [m, r, s, h] = await Promise.all([
           DataService.getMasterData(),
           DataService.getRealizationData(),
-          DataService.getSpendingData()
+          DataService.getSpendingData(),
+          DataService.getHibahData()
         ]);
         setMasterData(m);
         setRealizationData(r);
         setSpendingData(s);
+        setHibahData(h);
       } catch (err) {
         console.error("Gagal memuat data", err);
       } finally {
@@ -274,6 +278,63 @@ const App: React.FC = () => {
     }
   };
 
+  const updateHibahData = async (newData: HibahData[]) => {
+    setIsSyncing(true);
+    setHibahData(newData);
+    try {
+      await DataService.saveHibahData(newData);
+      const freshData = await DataService.getHibahData();
+      setHibahData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data hibah", err);
+      alert("Gagal menyimpan data hibah ke server. Silakan periksa koneksi internet Anda.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const replaceHibahData = async (newData: HibahData[]) => {
+    setIsSyncing(true);
+    setHibahData(newData);
+    try {
+      await DataService.syncHibahData(newData);
+      const freshData = await DataService.getHibahData();
+      setHibahData(freshData);
+    } catch (err) {
+      console.error("Gagal sinkronisasi data hibah (replace)", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteHibahData = async (id: string) => {
+    setIsSyncing(true);
+    setHibahData(prev => prev.filter(item => item.id !== id));
+    try {
+      await DataService.deleteHibahData(id);
+    } catch (err) {
+      console.error("Gagal menghapus data hibah", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const clearHibahData = async () => {
+    setIsSyncing(true);
+    const backup = [...hibahData];
+    setHibahData([]);
+    try {
+      await DataService.clearHibahData();
+      alert("Semua data hibah berhasil dihapus dari server.");
+    } catch (err) {
+      console.error("Gagal menghapus semua data hibah", err);
+      setHibahData(backup);
+      alert("Gagal menghapus data hibah dari server. Silakan periksa koneksi internet Anda.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 text-indigo-600">
@@ -344,6 +405,9 @@ const App: React.FC = () => {
               <button onClick={() => setActivePage('realization')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'realization' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
                 <CircleDollarSign size={20} /> {isSidebarOpen && <span>Realisasi</span>}
               </button>
+              <button onClick={() => setActivePage('hibah')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'hibah' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+                <Gift size={20} /> {isSidebarOpen && <span>Hibah</span>}
+              </button>
               <button onClick={() => setActivePage('spending')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'spending' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
                 <CreditCard size={20} /> {isSidebarOpen && <span>Data Belanja</span>}
               </button>
@@ -388,6 +452,7 @@ const App: React.FC = () => {
             {activePage === 'dashboard' && <Dashboard masterData={masterData} realizationData={realizationData} spendingData={spendingData} />}
             {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} replaceData={replaceMasterData} deleteRow={deleteMasterData} clearAll={clearMasterData} />}
             {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} replaceData={replaceRealizationData} deleteRow={deleteRealizationData} clearAll={clearRealizationData} masterData={masterData} />}
+            {activePage === 'hibah' && <HibahDataPage data={hibahData} setData={updateHibahData} replaceData={replaceHibahData} deleteRow={deleteHibahData} clearAll={clearHibahData} masterData={masterData} />}
             {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
             {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} />}
           </div>

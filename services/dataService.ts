@@ -1,5 +1,5 @@
 
-import { MasterData, RealizationData, ExpenditureData } from "../types";
+import { MasterData, RealizationData, ExpenditureData, HibahData } from "../types";
 import { db, auth } from "../firebase";
 import { 
   collection, 
@@ -303,6 +303,96 @@ export const DataService = {
       }
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  // --- HIBAH DATA ---
+  async getHibahData(): Promise<HibahData[]> {
+    const path = 'hibah_data';
+    try {
+      const snapshot = await getDocsFromServer(collection(db, path));
+      return snapshot.docs.map(doc => doc.data() as HibahData);
+    } catch (e) {
+      console.warn("Gagal mengambil data hibah dari server, mencoba cache...", e);
+      try {
+        const snapshot = await getDocs(collection(db, path));
+        return snapshot.docs.map(doc => doc.data() as HibahData);
+      } catch (err) {
+        handleFirestoreError(e, OperationType.GET, path);
+        return [];
+      }
+    }
+  },
+
+  async saveHibahData(data: HibahData[]): Promise<void> {
+    const path = 'hibah_data';
+    try {
+      const chunks = [];
+      for (let i = 0; i < data.length; i += 500) {
+        chunks.push(data.slice(i, i + 500));
+      }
+
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(item => {
+          const docRef = doc(db, path, item.id);
+          batch.set(docRef, item);
+        });
+        await batch.commit();
+      }
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  async syncHibahData(data: HibahData[]): Promise<void> {
+    const path = 'hibah_data';
+    try {
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Sync Hibah: Menghapus ${snapshot.docs.length} dokumen lama...`);
+      
+      const deleteChunks = [];
+      for (let i = 0; i < snapshot.docs.length; i += 500) {
+        deleteChunks.push(snapshot.docs.slice(i, i + 500));
+      }
+      for (const chunk of deleteChunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+      await this.saveHibahData(data);
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
+    }
+  },
+
+  async deleteHibahData(id: string): Promise<void> {
+    const path = 'hibah_data';
+    try {
+      await deleteDoc(doc(db, path, id));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
+    }
+  },
+
+  async clearHibahData(): Promise<void> {
+    const path = 'hibah_data';
+    try {
+      const snapshot = await getDocsFromServer(collection(db, path));
+      console.log(`Clear Hibah: Menghapus ${snapshot.docs.length} dokumen...`);
+      
+      const chunks = [];
+      for (let i = 0; i < snapshot.docs.length; i += 500) {
+        chunks.push(snapshot.docs.slice(i, i + 500));
+      }
+      
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, path);
     }
   }
 };

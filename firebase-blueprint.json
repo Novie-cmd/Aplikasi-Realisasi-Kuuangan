@@ -53,6 +53,24 @@
         "belanja": { "type": "string" }
       },
       "required": ["id", "kode_belanja", "belanja"]
+    },
+    "HibahData": {
+      "title": "Hibah Data",
+      "description": "Grant budget lines and realization tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kegiatan": { "type": "string" },
+        "kode_kegiatan": { "type": "string" },
+        "sub_kegiatan": { "type": "string" },
+        "kode_sub_kegiatan": { "type": "string" },
+        "anggaran": { "type": "number" },
+        "spd": { "type": "number" },
+        "realisasi": { "type": "number" },
+        "sisa_spd": { "type": "number" },
+        "sisa_realisasi": { "type": "number" }
+      },
+      "required": ["id", "kegiatan", "sub_kegiatan", "anggaran", "spd", "realisasi"]
     }
   },
   "firestore": {
@@ -67,6 +85,10 @@
     "/spending_data/{id}": {
       "schema": "ExpenditureData",
       "description": "Collection of expenditure types"
+    },
+    "/hibah_data/{id}": {
+      "schema": "HibahData",
+      "description": "Collection of grant budget and realization data"
     }
   }
 }
