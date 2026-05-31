@@ -10,7 +10,8 @@ import {
   query, 
   limit, 
   getDocsFromServer,
-  deleteDoc
+  deleteDoc,
+  getDoc
 } from "firebase/firestore";
 
 /**
@@ -393,6 +394,29 @@ export const DataService = {
       }
     } catch (e) {
       handleFirestoreError(e, OperationType.DELETE, path);
+    }
+  },
+
+  // --- SETTINGS DATA ---
+  async getSettings(id: string): Promise<any> {
+    const path = "settings";
+    try {
+      const docRef = doc(db, path, id);
+      const snapshot = await getDoc(docRef);
+      return snapshot.exists() ? snapshot.data() : null;
+    } catch (e) {
+      console.warn("Gagal mengambil settings:", e);
+      return null;
+    }
+  },
+
+  async saveSettings(id: string, data: any): Promise<void> {
+    const path = "settings";
+    try {
+      const docRef = doc(db, path, id);
+      await setDoc(docRef, data, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, path);
     }
   }
 };

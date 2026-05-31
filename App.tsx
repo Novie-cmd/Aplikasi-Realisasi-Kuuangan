@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
-import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, Loader2, CloudSync, LogOut, Lock, User, AlertTriangle, Gift } from 'lucide-react';
+import { LayoutDashboard, Database, CreditCard, Menu, X, FileText, CircleDollarSign, Loader2, CloudSync, LogOut, Lock, User, AlertTriangle, Gift, FileSpreadsheet } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import MasterDataPage from './pages/MasterData';
 import ExpenditureDataPage from './pages/ExpenditureData';
 import ReportsPage from './pages/Reports';
 import RealizationDataPage from './pages/RealizationData';
 import HibahDataPage from './pages/HibahData';
+import SpreadsheetSettings from './pages/SpreadsheetSettings';
 import { MasterData, ExpenditureData, Page, RealizationData, HibahData } from './types';
 import { DataService } from './services/dataService';
+import { SheetsService } from './services/sheetsService';
 import { auth } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User as FirebaseUser } from 'firebase/auth';
 
@@ -86,6 +88,12 @@ const App: React.FC = () => {
   const [realizationData, setRealizationData] = useState<RealizationData[]>([]);
   const [hibahData, setHibahData] = useState<HibahData[]>([]);
 
+  // Google Sheets integration states
+  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
+  const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(null);
+  const [isAutoSync, setIsAutoSync] = useState(true);
+
   // Firebase Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -99,13 +107,20 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Simulasi Login diganti dengan Google Login
+  // Google login handler with scopes
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+      provider.addScope('https://www.googleapis.com/auth/drive.file');
+      
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        setGoogleAccessToken(credential.accessToken);
+      }
     } catch (err) {
       console.error("Gagal login", err);
       alert("Gagal login dengan Google. Silakan coba lagi.");
@@ -117,8 +132,196 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setGoogleAccessToken(null);
     } catch (err) {
       console.error("Gagal logout", err);
+    }
+  };
+
+  // Google Sheets integration handlers
+  const connectGoogleSheets = async (): Promise<string | null> => {
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+      provider.addScope('https://www.googleapis.com/auth/drive.file');
+      
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        setGoogleAccessToken(credential.accessToken);
+        alert("Google Sheets berhasil terhubung!");
+        return credential.accessToken;
+      } else {
+        throw new Error("Gagal mengambil token Google Sheets.");
+      }
+    } catch (err) {
+      console.error("Gagal menghubungkan Google Sheets", err);
+      alert("Gagal menghubungkan Google Sheets. Pastikan Anda masuk dan menyetujui akses.");
+      return null;
+    }
+  };
+
+  const handleCreateNewSpreadsheet = async () => {
+    let token = googleAccessToken;
+    if (!token) {
+      token = await connectGoogleSheets();
+      if (!token) return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const result = await SheetsService.createSpreadsheet(token);
+      setSpreadsheetId(result.id);
+      setSpreadsheetUrl(result.url);
+      
+      await DataService.saveSettings("google_sheets", {
+        spreadsheetId: result.id,
+        spreadsheetUrl: result.url,
+        isAutoSync: isAutoSync
+      });
+
+      alert(`Spreadsheet baru berhasil dibuat dan dikoneksikan!\nURL: ${result.url}`);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal membuat spreadsheet baru.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleConnectExistingSpreadsheet = async (id: string) => {
+    if (!id.trim()) {
+      alert("Masukkan ID Spreadsheet yang valid.");
+      return;
+    }
+    let token = googleAccessToken;
+    if (!token) {
+      token = await connectGoogleSheets();
+      if (!token) return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const isValid = await SheetsService.checkSpreadsheet(token, id);
+      if (!isValid) {
+        alert("ID Spreadsheet tidak valid atau tidak memiliki akses. Pastikan ID benar.");
+        return;
+      }
+
+      const url = `https://docs.google.com/spreadsheets/d/${id}/edit`;
+      setSpreadsheetId(id);
+      setSpreadsheetUrl(url);
+
+      await DataService.saveSettings("google_sheets", {
+        spreadsheetId: id,
+        spreadsheetUrl: url,
+        isAutoSync: isAutoSync
+      });
+
+      alert("ID Spreadsheet berhasil dikoneksikan!");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengoneksikan Spreadsheet.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handlePullFromSpreadsheet = async () => {
+    if (!spreadsheetId) {
+      alert("Silakan hubungkan spreadsheet terlebih dahulu.");
+      return;
+    }
+    let token = googleAccessToken;
+    if (!token) {
+      token = await connectGoogleSheets();
+      if (!token) return;
+    }
+
+    const confirmed = window.confirm("Apakah Anda yakin ingin menarik data? Tindakan ini akan menimpa seluruh data lokal & Firestore Anda dengan data dari Spreadsheet.");
+    if (!confirmed) return;
+
+    setIsSyncing(true);
+    try {
+      const result = await SheetsService.pullData(token, spreadsheetId);
+      
+      setMasterData(result.masterData);
+      setRealizationData(result.realizationData);
+      setSpendingData(result.spendingData);
+      setHibahData(result.hibahData);
+
+      // Save sync results and rewrite Firestore collections
+      await Promise.all([
+        DataService.syncMasterData(result.masterData),
+        DataService.syncRealizationData(result.realizationData),
+        DataService.saveSpendingData(result.spendingData),
+        DataService.syncHibahData(result.hibahData)
+      ]);
+
+      alert("Data berhasil ditarik dari Google Spreadsheet ke Cloud Firestore!");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menarik data dari spreadsheet.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handlePushToSpreadsheet = async () => {
+    if (!spreadsheetId) {
+      alert("Silakan hubungkan spreadsheet terlebih dahulu.");
+      return;
+    }
+    let token = googleAccessToken;
+    if (!token) {
+      token = await connectGoogleSheets();
+      if (!token) return;
+    }
+
+    const confirmed = window.confirm("Apakah Anda yakin ingin mengirim data? Tindakan ini akan menimpa data yang saat ini ada di Google Spreadsheet.");
+    if (!confirmed) return;
+
+    setIsSyncing(true);
+    try {
+      await SheetsService.pushData(token, spreadsheetId, masterData, realizationData, spendingData, hibahData);
+      alert("Data berhasil diekspor ke Google Spreadsheet!");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengirim data ke spreadsheet.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleToggleAutoSync = async (checked: boolean) => {
+    setIsAutoSync(checked);
+    if (spreadsheetId) {
+      await DataService.saveSettings("google_sheets", {
+        isAutoSync: checked
+      });
+    }
+  };
+
+  const triggerAutoPush = async (
+    latestMaster = masterData,
+    latestRealization = realizationData,
+    latestSpending = spendingData,
+    latestHibah = hibahData
+  ) => {
+    if (googleAccessToken && spreadsheetId && isAutoSync) {
+      try {
+        await SheetsService.pushData(
+          googleAccessToken,
+          spreadsheetId,
+          latestMaster,
+          latestRealization,
+          latestSpending,
+          latestHibah
+        );
+        console.log("Auto-sync spreadsheet berhasil.");
+      } catch (err) {
+        console.warn("Auto-sync gagal:", err);
+      }
     }
   };
 
@@ -131,16 +334,23 @@ const App: React.FC = () => {
       setIsLoading(true);
       try {
         await DataService.testConnection();
-        const [m, r, s, h] = await Promise.all([
+        const [m, r, s, h, settings] = await Promise.all([
           DataService.getMasterData(),
           DataService.getRealizationData(),
           DataService.getSpendingData(),
-          DataService.getHibahData()
+          DataService.getHibahData(),
+          DataService.getSettings("google_sheets")
         ]);
         setMasterData(m);
         setRealizationData(r);
         setSpendingData(s);
         setHibahData(h);
+        
+        if (settings) {
+          setSpreadsheetId(settings.spreadsheetId || null);
+          setSpreadsheetUrl(settings.spreadsheetUrl || null);
+          setIsAutoSync(settings.isAutoSync ?? true);
+        }
       } catch (err) {
         console.error("Gagal memuat data", err);
       } finally {
@@ -158,6 +368,7 @@ const App: React.FC = () => {
       // Re-fetch to ensure local state matches server exactly
       const freshData = await DataService.getMasterData();
       setMasterData(freshData);
+      await triggerAutoPush(freshData, realizationData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data master", err);
       alert("Gagal menyimpan data master ke server. Silakan periksa koneksi internet Anda.");
@@ -173,6 +384,7 @@ const App: React.FC = () => {
       await DataService.syncMasterData(newData);
       const freshData = await DataService.getMasterData();
       setMasterData(freshData);
+      await triggerAutoPush(freshData, realizationData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data master (replace)", err);
     } finally {
@@ -182,9 +394,11 @@ const App: React.FC = () => {
 
   const deleteMasterData = async (id: string) => {
     setIsSyncing(true);
-    setMasterData(prev => prev.filter(item => item.id !== id));
+    const updated = masterData.filter(item => item.id !== id);
+    setMasterData(updated);
     try {
       await DataService.deleteMasterData(id);
+      await triggerAutoPush(updated, realizationData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal menghapus data master", err);
     } finally {
@@ -198,6 +412,7 @@ const App: React.FC = () => {
     setMasterData([]);
     try {
       await DataService.clearMasterData();
+      await triggerAutoPush([], realizationData, spendingData, hibahData);
       alert("Semua data master berhasil dihapus dari server.");
     } catch (err) {
       console.error("Gagal menghapus semua data master", err);
@@ -215,6 +430,7 @@ const App: React.FC = () => {
       await DataService.saveRealizationData(newData);
       const freshData = await DataService.getRealizationData();
       setRealizationData(freshData);
+      await triggerAutoPush(masterData, freshData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi", err);
       alert("Gagal menyimpan data realisasi ke server. Silakan periksa koneksi internet Anda.");
@@ -230,6 +446,7 @@ const App: React.FC = () => {
       await DataService.syncRealizationData(newData);
       const freshData = await DataService.getRealizationData();
       setRealizationData(freshData);
+      await triggerAutoPush(masterData, freshData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi (replace)", err);
     } finally {
@@ -239,9 +456,11 @@ const App: React.FC = () => {
 
   const deleteRealizationData = async (id: string) => {
     setIsSyncing(true);
-    setRealizationData(prev => prev.filter(item => item.id !== id));
+    const updated = realizationData.filter(item => item.id !== id);
+    setRealizationData(updated);
     try {
       await DataService.deleteRealizationData(id);
+      await triggerAutoPush(masterData, updated, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal menghapus data realisasi", err);
     } finally {
@@ -255,6 +474,7 @@ const App: React.FC = () => {
     setRealizationData([]);
     try {
       await DataService.clearRealizationData();
+      await triggerAutoPush(masterData, [], spendingData, hibahData);
       alert("Semua data realisasi berhasil dihapus dari server.");
     } catch (err) {
       console.error("Gagal menghapus semua data realisasi", err);
@@ -270,6 +490,7 @@ const App: React.FC = () => {
     setSpendingData(newData);
     try {
       await DataService.saveSpendingData(newData);
+      await triggerAutoPush(masterData, realizationData, newData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data belanja", err);
       alert("Gagal menyimpan data belanja ke server.");
@@ -285,6 +506,7 @@ const App: React.FC = () => {
       await DataService.saveHibahData(newData);
       const freshData = await DataService.getHibahData();
       setHibahData(freshData);
+      await triggerAutoPush(masterData, realizationData, spendingData, freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data hibah", err);
       alert("Gagal menyimpan data hibah ke server. Silakan periksa koneksi internet Anda.");
@@ -300,6 +522,7 @@ const App: React.FC = () => {
       await DataService.syncHibahData(newData);
       const freshData = await DataService.getHibahData();
       setHibahData(freshData);
+      await triggerAutoPush(masterData, realizationData, spendingData, freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data hibah (replace)", err);
     } finally {
@@ -309,9 +532,11 @@ const App: React.FC = () => {
 
   const deleteHibahData = async (id: string) => {
     setIsSyncing(true);
-    setHibahData(prev => prev.filter(item => item.id !== id));
+    const updated = hibahData.filter(item => item.id !== id);
+    setHibahData(updated);
     try {
       await DataService.deleteHibahData(id);
+      await triggerAutoPush(masterData, realizationData, spendingData, updated);
     } catch (err) {
       console.error("Gagal menghapus data hibah", err);
     } finally {
@@ -325,6 +550,7 @@ const App: React.FC = () => {
     setHibahData([]);
     try {
       await DataService.clearHibahData();
+      await triggerAutoPush(masterData, realizationData, spendingData, []);
       alert("Semua data hibah berhasil dihapus dari server.");
     } catch (err) {
       console.error("Gagal menghapus semua data hibah", err);
@@ -414,6 +640,9 @@ const App: React.FC = () => {
               <button onClick={() => setActivePage('reports')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'reports' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
                 <FileText size={20} /> {isSidebarOpen && <span>Laporan</span>}
               </button>
+              <button onClick={() => setActivePage('spreadsheet')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'spreadsheet' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+                <FileSpreadsheet size={20} /> {isSidebarOpen && <span>Spreadsheet</span>}
+              </button>
             </nav>
             
             <div className="p-4 border-t border-indigo-900 space-y-4">
@@ -455,6 +684,25 @@ const App: React.FC = () => {
             {activePage === 'hibah' && <HibahDataPage data={hibahData} setData={updateHibahData} replaceData={replaceHibahData} deleteRow={deleteHibahData} clearAll={clearHibahData} masterData={masterData} />}
             {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
             {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} hibahData={hibahData} />}
+            {activePage === 'spreadsheet' && (
+              <SpreadsheetSettings
+                googleAccessToken={googleAccessToken}
+                spreadsheetId={spreadsheetId}
+                spreadsheetUrl={spreadsheetUrl}
+                isAutoSync={isAutoSync}
+                isSyncing={isSyncing}
+                connectGoogleSheets={connectGoogleSheets}
+                handleCreateNewSpreadsheet={handleCreateNewSpreadsheet}
+                handleConnectExistingSpreadsheet={handleConnectExistingSpreadsheet}
+                handlePullFromSpreadsheet={handlePullFromSpreadsheet}
+                handlePushToSpreadsheet={handlePushToSpreadsheet}
+                handleToggleAutoSync={handleToggleAutoSync}
+                masterCount={masterData.length}
+                realizationCount={realizationData.length}
+                spendingCount={spendingData.length}
+                hibahCount={hibahData.length}
+              />
+            )}
           </div>
         </main>
       </div>
