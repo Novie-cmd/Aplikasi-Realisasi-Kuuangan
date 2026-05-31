@@ -102,6 +102,13 @@ const App: React.FC = () => {
       setIsAuthReady(true);
       if (!firebaseUser) {
         setIsLoading(false);
+        setMasterData([]);
+        setRealizationData([]);
+        setSpendingData([]);
+        setHibahData([]);
+        setSpreadsheetId(null);
+        setSpreadsheetUrl(null);
+        setGoogleAccessToken(null);
       }
     });
     return () => unsubscribe();

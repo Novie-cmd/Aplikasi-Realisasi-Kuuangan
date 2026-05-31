@@ -2,20 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: master_data
-    // Fields: id, skpd, kode_skpd, program, kode_program, kegiatan, kode_kegiatan, sub_kegiatan, kode_sub_kegiatan, belanja, kode_belanja, anggaran, realisasi, pagu_spd
-    //
-    // Collection: realization_data
-    // Fields: id, skpd, kode_skpd, program, kode_program, kegiatan, kode_kegiatan, sub_kegiatan, kode_sub_kegiatan, belanja, kode_belanja, realisasi, keterangan_dokumen
-    //
-    // Collection: spending_data
-    // Fields: id, kode_belanja, belanja
-    //
-    // ===============================================================
+    // Global Catch-all Deny Rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
 
     // ===============================================================
     // Helper Functions
@@ -24,10 +14,16 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "noviharyanto062@gmail.com" && request.auth.token.email_verified == true));
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
     }
 
     function isValidMasterData(data) {
@@ -49,6 +45,7 @@ service cloud.firestore {
              (!('keterangan_dokumen' in data) || data.keterangan_dokumen is string);
     }
 
+    // Special allowance for custom list of spending_data keys
     function isValidSpendingData(data) {
       return data.keys().hasAll(['id', 'kode_belanja', 'belanja']) &&
              data.id is string &&
@@ -74,36 +71,41 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // Rules
+    // Rules for isolated user documents & nested subcollections
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAdmin();
-    }
+      allow read, write: if isOwner(userId);
 
-    match /master_data/{id} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && isValidMasterData(request.resource.data);
-      allow delete: if isAuthenticated();
-    }
+      match /master_data/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(id) && isValidMasterData(incoming());
+        allow delete: if isOwner(userId);
+      }
 
-    match /realization_data/{id} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && isValidRealizationData(request.resource.data);
-      allow delete: if isAuthenticated();
-    }
+      match /realization_data/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(id) && isValidRealizationData(incoming());
+        allow delete: if isOwner(userId);
+      }
 
-    match /spending_data/{id} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && isValidSpendingData(request.resource.data);
-      allow delete: if isAuthenticated();
-    }
+      match /spending_data/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(id) && isValidSpendingData(incoming());
+        allow delete: if isOwner(userId);
+      }
 
-    match /hibah_data/{id} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && isValidHibahData(request.resource.data);
-      allow delete: if isAuthenticated();
+      match /hibah_data/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(id) && isValidHibahData(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /settings/{id} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(id);
+        allow delete: if isOwner(userId);
+      }
     }
   }
 }

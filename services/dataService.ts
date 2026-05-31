@@ -70,11 +70,19 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+const getUserCollectionPath = (slug: string): string => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error("Pengguna belum masuk. Silakan login terlebih dahulu.");
+  }
+  return `users/${uid}/${slug}`;
+};
+
 export const DataService = {
   // Test connection
   async testConnection() {
     try {
-      await getDocsFromServer(query(collection(db, 'master_data'), limit(1)));
+      await getDocsFromServer(query(collection(db, getUserCollectionPath('master_data')), limit(1)));
     } catch (error) {
       if(error instanceof Error && error.message.includes('the client is offline')) {
         console.error("Please check your Firebase configuration. ");
@@ -84,7 +92,7 @@ export const DataService = {
 
   // --- MASTER DATA ---
   async getMasterData(): Promise<MasterData[]> {
-    const path = 'master_data';
+    const path = getUserCollectionPath('master_data');
     try {
       // Gunakan getDocsFromServer untuk memastikan data terbaru dari server (menghindari cache)
       const snapshot = await getDocsFromServer(collection(db, path));
@@ -102,7 +110,7 @@ export const DataService = {
   },
 
   async saveMasterData(data: MasterData[]): Promise<void> {
-    const path = 'master_data';
+    const path = getUserCollectionPath('master_data');
     try {
       // Split into chunks of 500 for Firestore batch limits
       const chunks = [];
@@ -128,7 +136,7 @@ export const DataService = {
    * Ini mencegah duplikasi data lama yang masih tersimpan di Firestore.
    */
   async syncMasterData(data: MasterData[]): Promise<void> {
-    const path = 'master_data';
+    const path = getUserCollectionPath('master_data');
     try {
       // 1. Ambil semua dokumen yang ada dari server (bukan cache)
       const snapshot = await getDocsFromServer(collection(db, path));
@@ -154,7 +162,7 @@ export const DataService = {
   },
 
   async deleteMasterData(id: string): Promise<void> {
-    const path = 'master_data';
+    const path = getUserCollectionPath('master_data');
     try {
       await deleteDoc(doc(db, path, id));
     } catch (e) {
@@ -163,7 +171,7 @@ export const DataService = {
   },
 
   async clearMasterData(): Promise<void> {
-    const path = 'master_data';
+    const path = getUserCollectionPath('master_data');
     try {
       // Gunakan getDocsFromServer untuk memastikan semua data terdeteksi
       const snapshot = await getDocsFromServer(collection(db, path));
@@ -186,7 +194,7 @@ export const DataService = {
 
   // --- REALIZATION DATA ---
   async getRealizationData(): Promise<RealizationData[]> {
-    const path = 'realization_data';
+    const path = getUserCollectionPath('realization_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       return snapshot.docs.map(doc => doc.data() as RealizationData);
@@ -203,7 +211,7 @@ export const DataService = {
   },
 
   async saveRealizationData(data: RealizationData[]): Promise<void> {
-    const path = 'realization_data';
+    const path = getUserCollectionPath('realization_data');
     try {
       const chunks = [];
       for (let i = 0; i < data.length; i += 500) {
@@ -224,7 +232,7 @@ export const DataService = {
   },
 
   async syncRealizationData(data: RealizationData[]): Promise<void> {
-    const path = 'realization_data';
+    const path = getUserCollectionPath('realization_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       console.log(`Sync Realization: Menghapus ${snapshot.docs.length} dokumen lama...`);
@@ -245,7 +253,7 @@ export const DataService = {
   },
 
   async deleteRealizationData(id: string): Promise<void> {
-    const path = 'realization_data';
+    const path = getUserCollectionPath('realization_data');
     try {
       await deleteDoc(doc(db, path, id));
     } catch (e) {
@@ -254,14 +262,14 @@ export const DataService = {
   },
 
   async clearRealizationData(): Promise<void> {
-    const path = 'realization_data';
+    const path = getUserCollectionPath('realization_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       console.log(`Clear Realization: Menghapus ${snapshot.docs.length} dokumen...`);
       
       const chunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
-        chunks.push(snapshot.docs.slice(i, i + 500));
+        chunks.push(snapshot.docs.slice(i, i + 1));
       }
       
       for (const chunk of chunks) {
@@ -276,7 +284,7 @@ export const DataService = {
 
   // --- SPENDING DATA ---
   async getSpendingData(): Promise<ExpenditureData[]> {
-    const path = 'spending_data';
+    const path = getUserCollectionPath('spending_data');
     try {
       const snapshot = await getDocs(collection(db, path));
       return snapshot.docs.map(doc => doc.data() as ExpenditureData);
@@ -287,7 +295,7 @@ export const DataService = {
   },
 
   async saveSpendingData(data: ExpenditureData[]): Promise<void> {
-    const path = 'spending_data';
+    const path = getUserCollectionPath('spending_data');
     try {
       const chunks = [];
       for (let i = 0; i < data.length; i += 500) {
@@ -309,7 +317,7 @@ export const DataService = {
 
   // --- HIBAH DATA ---
   async getHibahData(): Promise<HibahData[]> {
-    const path = 'hibah_data';
+    const path = getUserCollectionPath('hibah_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       return snapshot.docs.map(doc => doc.data() as HibahData);
@@ -326,7 +334,7 @@ export const DataService = {
   },
 
   async saveHibahData(data: HibahData[]): Promise<void> {
-    const path = 'hibah_data';
+    const path = getUserCollectionPath('hibah_data');
     try {
       const chunks = [];
       for (let i = 0; i < data.length; i += 500) {
@@ -347,7 +355,7 @@ export const DataService = {
   },
 
   async syncHibahData(data: HibahData[]): Promise<void> {
-    const path = 'hibah_data';
+    const path = getUserCollectionPath('hibah_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       console.log(`Sync Hibah: Menghapus ${snapshot.docs.length} dokumen lama...`);
@@ -368,7 +376,7 @@ export const DataService = {
   },
 
   async deleteHibahData(id: string): Promise<void> {
-    const path = 'hibah_data';
+    const path = getUserCollectionPath('hibah_data');
     try {
       await deleteDoc(doc(db, path, id));
     } catch (e) {
@@ -377,7 +385,7 @@ export const DataService = {
   },
 
   async clearHibahData(): Promise<void> {
-    const path = 'hibah_data';
+    const path = getUserCollectionPath('hibah_data');
     try {
       const snapshot = await getDocsFromServer(collection(db, path));
       console.log(`Clear Hibah: Menghapus ${snapshot.docs.length} dokumen...`);
@@ -399,7 +407,7 @@ export const DataService = {
 
   // --- SETTINGS DATA ---
   async getSettings(id: string): Promise<any> {
-    const path = "settings";
+    const path = getUserCollectionPath("settings");
     try {
       const docRef = doc(db, path, id);
       const snapshot = await getDoc(docRef);
@@ -411,7 +419,7 @@ export const DataService = {
   },
 
   async saveSettings(id: string, data: any): Promise<void> {
-    const path = "settings";
+    const path = getUserCollectionPath("settings");
     try {
       const docRef = doc(db, path, id);
       await setDoc(docRef, data, { merge: true });
