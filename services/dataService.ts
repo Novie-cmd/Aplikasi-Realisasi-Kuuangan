@@ -269,7 +269,7 @@ export const DataService = {
       
       const chunks = [];
       for (let i = 0; i < snapshot.docs.length; i += 500) {
-        chunks.push(snapshot.docs.slice(i, i + 1));
+        chunks.push(snapshot.docs.slice(i, i + 500));
       }
       
       for (const chunk of chunks) {

@@ -22,6 +22,10 @@ interface Props {
   spreadsheetUrl: string | null;
   isAutoSync: boolean;
   isSyncing: boolean;
+  sheetError: string | null;
+  sheetSuccess: string | null;
+  setSheetError: (err: string | null) => void;
+  setSheetSuccess: (s: string | null) => void;
   connectGoogleSheets: () => Promise<string | null>;
   handleCreateNewSpreadsheet: () => Promise<void>;
   handleConnectExistingSpreadsheet: (id: string) => Promise<void>;
@@ -40,6 +44,10 @@ const SpreadsheetSettings: React.FC<Props> = ({
   spreadsheetUrl,
   isAutoSync,
   isSyncing,
+  sheetError,
+  sheetSuccess,
+  setSheetError,
+  setSheetSuccess,
   connectGoogleSheets,
   handleCreateNewSpreadsheet,
   handleConnectExistingSpreadsheet,
@@ -52,6 +60,7 @@ const SpreadsheetSettings: React.FC<Props> = ({
   hibahCount
 }) => {
   const [existingId, setExistingId] = useState("");
+  const isInsideIframe = typeof window !== "undefined" && window.self !== window.top;
 
   const handleLinkExisting = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +94,68 @@ const SpreadsheetSettings: React.FC<Props> = ({
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
               <Settings size={18} /> Status Integrasi
             </h2>
+
+            {isInsideIframe && !googleAccessToken && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-xs text-amber-950 leading-relaxed shadow-sm">
+                <div className="flex gap-2 font-black items-center text-amber-800 uppercase tracking-wider text-[10px]">
+                  <AlertCircle size={16} className="text-amber-600 shrink-0" /> KHUSUS PREVIEW: Otorisasi Google Terblokir Iframe
+                </div>
+                <p>
+                  Aplikasi saat ini berjalan di dalam <b>Iframe (AI Studio Preview)</b>. Demi alasan keamanan, sebagian besar browser memblokir login popup Google OAuth jika dijalankan di dalam Iframe.
+                </p>
+                <p className="font-bold">
+                  Silakan buka aplikasi di tab mandiri agar proses otorisasi berjalan lancar:
+                </p>
+                <div className="pt-1">
+                  <a
+                    href={window.location.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3 py-2 rounded-lg text-xs transition shadow-md shadow-amber-200"
+                  >
+                    Buka Aplikasi di Tab Baru <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Alert Status Sukses */}
+            {sheetSuccess && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 text-xs text-emerald-950 leading-relaxed shadow-sm animate-fade-in">
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-2 font-black items-center text-emerald-800 uppercase tracking-wider text-[10px]">
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" /> OPERASI BERHASIL
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setSheetSuccess(null)}
+                    className="text-emerald-600 hover:text-emerald-800 font-extrabold text-[10px] uppercase cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
+                <p className="font-medium whitespace-pre-wrap">{sheetSuccess}</p>
+              </div>
+            )}
+
+            {/* Alert Status Error */}
+            {sheetError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-1 text-xs text-red-950 leading-relaxed shadow-sm animate-fade-in">
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-2 font-black items-center text-red-800 uppercase tracking-wider text-[10px]">
+                    <AlertCircle size={16} className="text-red-650 shrink-0" /> OPERASI GAGAL / LOG INFO
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setSheetError(null)}
+                    className="text-red-600 hover:text-red-800 font-extrabold text-[10px] uppercase cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
+                <p className="font-bold whitespace-pre-wrap">{sheetError}</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Box Status Google */}

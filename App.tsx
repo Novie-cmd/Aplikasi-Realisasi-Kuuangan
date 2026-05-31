@@ -93,6 +93,8 @@ const App: React.FC = () => {
   const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
   const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(null);
   const [isAutoSync, setIsAutoSync] = useState(true);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+  const [sheetSuccess, setSheetSuccess] = useState<string | null>(null);
 
   // Firebase Auth Listener
   useEffect(() => {
@@ -147,6 +149,8 @@ const App: React.FC = () => {
 
   // Google Sheets integration handlers
   const connectGoogleSheets = async (): Promise<string | null> => {
+    setSheetError(null);
+    setSheetSuccess(null);
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('https://www.googleapis.com/auth/spreadsheets');
@@ -156,19 +160,27 @@ const App: React.FC = () => {
       const credential = GoogleAuthProvider.credentialFromResult(result);
       if (credential?.accessToken) {
         setGoogleAccessToken(credential.accessToken);
-        alert("Google Sheets berhasil terhubung!");
+        setSheetSuccess("Google Sheets berhasil terhubung!");
         return credential.accessToken;
       } else {
         throw new Error("Gagal mengambil token Google Sheets.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Gagal menghubungkan Google Sheets", err);
-      alert("Gagal menghubungkan Google Sheets. Pastikan Anda masuk dan menyetujui akses.");
+      let errMsg = "Gagal menghubungkan Google Sheets. Pastikan Anda masuk dan menyetujui akses.";
+      if (err?.code === "auth/popup-blocked") {
+        errMsg = "Popup Google login diblokir oleh browser. Izinkan popup atau gunakan Tab Mandiri Baru.";
+      } else if (err?.message) {
+        errMsg = `Gagal menghubungkan: ${err.message}`;
+      }
+      setSheetError(errMsg);
       return null;
     }
   };
 
   const handleCreateNewSpreadsheet = async () => {
+    setSheetError(null);
+    setSheetSuccess(null);
     let token = googleAccessToken;
     if (!token) {
       token = await connectGoogleSheets();
@@ -187,18 +199,20 @@ const App: React.FC = () => {
         isAutoSync: isAutoSync
       });
 
-      alert(`Spreadsheet baru berhasil dibuat dan dikoneksikan!\nURL: ${result.url}`);
-    } catch (err) {
+      setSheetSuccess(`Spreadsheet baru berhasil dibuat dan dikoneksikan!\nURL: ${result.url}`);
+    } catch (err: any) {
       console.error(err);
-      alert("Gagal membuat spreadsheet baru.");
+      setSheetError(err?.message || "Gagal membuat spreadsheet baru.");
     } finally {
       setIsSyncing(false);
     }
   };
 
   const handleConnectExistingSpreadsheet = async (id: string) => {
+    setSheetError(null);
+    setSheetSuccess(null);
     if (!id.trim()) {
-      alert("Masukkan ID Spreadsheet yang valid.");
+      setSheetError("Masukkan ID Spreadsheet yang valid.");
       return;
     }
     let token = googleAccessToken;
@@ -211,7 +225,7 @@ const App: React.FC = () => {
     try {
       const isValid = await SheetsService.checkSpreadsheet(token, id);
       if (!isValid) {
-        alert("ID Spreadsheet tidak valid atau tidak memiliki akses. Pastikan ID benar.");
+        setSheetError("ID Spreadsheet tidak ditemukan, tidak valid, atau akun Google Sheets Anda tidak memiliki hak akses baca/tulis.");
         return;
       }
 
@@ -225,18 +239,20 @@ const App: React.FC = () => {
         isAutoSync: isAutoSync
       });
 
-      alert("ID Spreadsheet berhasil dikoneksikan!");
-    } catch (err) {
+      setSheetSuccess("ID Spreadsheet berhasil dikoneksikan!");
+    } catch (err: any) {
       console.error(err);
-      alert("Gagal mengoneksikan Spreadsheet.");
+      setSheetError(err?.message || "Gagal mengoneksikan Spreadsheet.");
     } finally {
       setIsSyncing(false);
     }
   };
 
   const handlePullFromSpreadsheet = async () => {
+    setSheetError(null);
+    setSheetSuccess(null);
     if (!spreadsheetId) {
-      alert("Silakan hubungkan spreadsheet terlebih dahulu.");
+      setSheetError("Silakan hubungkan spreadsheet terlebih dahulu.");
       return;
     }
     let token = googleAccessToken;
@@ -265,18 +281,20 @@ const App: React.FC = () => {
         DataService.syncHibahData(result.hibahData)
       ]);
 
-      alert("Data berhasil ditarik dari Google Spreadsheet ke Cloud Firestore!");
-    } catch (err) {
+      setSheetSuccess("Data berhasil ditarik dari Google Spreadsheet ke Cloud Firestore terpusat!");
+    } catch (err: any) {
       console.error(err);
-      alert("Gagal menarik data dari spreadsheet.");
+      setSheetError(err?.message || "Gagal menarik data dari spreadsheet.");
     } finally {
       setIsSyncing(false);
     }
   };
 
   const handlePushToSpreadsheet = async () => {
+    setSheetError(null);
+    setSheetSuccess(null);
     if (!spreadsheetId) {
-      alert("Silakan hubungkan spreadsheet terlebih dahulu.");
+      setSheetError("Silakan hubungkan spreadsheet terlebih dahulu.");
       return;
     }
     let token = googleAccessToken;
@@ -291,10 +309,10 @@ const App: React.FC = () => {
     setIsSyncing(true);
     try {
       await SheetsService.pushData(token, spreadsheetId, masterData, realizationData, spendingData, hibahData);
-      alert("Data berhasil diekspor ke Google Spreadsheet!");
-    } catch (err) {
+      setSheetSuccess("Data berhasil diekspor ke Google Spreadsheet!");
+    } catch (err: any) {
       console.error(err);
-      alert("Gagal mengirim data ke spreadsheet.");
+      setSheetError(err?.message || "Gagal mengirim data ke spreadsheet.");
     } finally {
       setIsSyncing(false);
     }
@@ -698,6 +716,10 @@ const App: React.FC = () => {
                 spreadsheetUrl={spreadsheetUrl}
                 isAutoSync={isAutoSync}
                 isSyncing={isSyncing}
+                sheetError={sheetError}
+                sheetSuccess={sheetSuccess}
+                setSheetError={setSheetError}
+                setSheetSuccess={setSheetSuccess}
                 connectGoogleSheets={connectGoogleSheets}
                 handleCreateNewSpreadsheet={handleCreateNewSpreadsheet}
                 handleConnectExistingSpreadsheet={handleConnectExistingSpreadsheet}
