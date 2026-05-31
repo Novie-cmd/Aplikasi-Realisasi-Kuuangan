@@ -73,14 +73,6 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
   };
 
   const reportData = useMemo(() => {
-    // 1. Buat Mapping Realisasi berdasarkan SKPD + Kode Belanja
-    // Ini adalah kunci paling unik untuk mencocokkan realisasi ke budget line
-    const realizationMap: Record<string, number> = {};
-    realizationData.forEach(r => {
-      const rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
-      realizationMap[rKey] = (realizationMap[rKey] || 0) + (Number(r.realisasi) || 0);
-    });
-
     const aggregated: Record<string, { 
       key: string;
       name: string; 
@@ -94,7 +86,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       isUnmapped?: boolean;
     }> = {};
 
-    // 2. Iterasi Master Data untuk membangun struktur laporan
+    // 1. Iterasi Master Data untuk membangun struktur anggaran di level yang dipilih
     masterData.forEach(m => {
       // Filter berdasarkan dropdown jika dipilih
       if (selectedSubKegiatan !== 'all' && m.sub_kegiatan !== selectedSubKegiatan) return;
@@ -104,7 +96,6 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       let name = '';
       let kode = '';
       let parentName = '';
-      const skpdClean = clean(m.skpd);
 
       // Tentukan kunci agregasi berdasarkan level yang dipilih
       if (level === 'bidang') {
@@ -145,45 +136,92 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       // Tambahkan nilai anggaran dari master
       aggregated[key].anggaran += Number(m.anggaran) || 0;
       aggregated[key].pagu_spd += Number(m.pagu_spd) || 0;
+    });
 
-      // Cari apakah ada realisasi untuk item master ini
-      const mKey = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
-      if (realizationMap[mKey]) {
-        aggregated[key].realisasi += realizationMap[mKey];
-        // Hapus dari map agar kita tahu data mana yang belum terpetakan di akhir
-        delete realizationMap[mKey];
+    // 2. Iterasi Realization Data untuk mencocokkan realisasi pada level yang dipilih
+    // Kita melacak realisasi yang tidak terpetakan untuk ditayangkan sebagai anomali
+    const unmatchedRealizations: Record<string, {
+      key: string;
+      name: string;
+      kode: string;
+      kode_sub_kegiatan?: string;
+      parentName: string;
+      anggaran: number;
+      pagu_spd: number;
+      realisasi: number;
+      skpd: string;
+      isUnmapped: boolean;
+    }> = {};
+
+    realizationData.forEach(r => {
+      // Filter berdasarkan dropdown jika dipilih
+      if (selectedSubKegiatan !== 'all' && r.sub_kegiatan !== selectedSubKegiatan) return;
+      if (selectedBelanja !== 'all' && r.belanja !== selectedBelanja) return;
+
+      let rKey = '';
+      if (level === 'bidang') {
+        const name = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+        rKey = `bidang|${name}`;
+      } else if (level === 'program') {
+        rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
+      } else if (level === 'kegiatan') {
+        rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
+      } else {
+        // Level Sub Kegiatan / Rincian Belanja
+        rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+      }
+
+      const value = Number(r.realisasi) || 0;
+
+      if (aggregated[rKey]) {
+        // Terpetakan sempurna di master pada level saat ini!
+        aggregated[rKey].realisasi += value;
+      } else {
+        // Tidak ditemukan di master pada level saat ini (Anomali)
+        if (!unmatchedRealizations[rKey]) {
+          let name = '';
+          let kode = '';
+          let parentName = 'DATA TIDAK TERPETAKAN (ANOMALI)';
+
+          if (level === 'bidang') {
+            name = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+            kode = "BIDANG";
+          } else if (level === 'program') {
+            name = r.program || 'Program Tidak Terdaftar';
+            kode = r.kode_program || '?';
+          } else if (level === 'kegiatan') {
+            name = r.kegiatan || 'Kegiatan Tidak Terdaftar';
+            kode = r.kode_kegiatan || '?';
+            parentName = r.program || 'PROGRAM TIDAK TERDAFTAR';
+          } else {
+            name = r.belanja || 'Kode Belanja Tidak Terdaftar di Master';
+            kode = r.kode_belanja || '?';
+            parentName = r.sub_kegiatan || 'SUB KEGIATAN TIDAK TERDAFTAR';
+          }
+
+          unmatchedRealizations[rKey] = {
+            key: `unmapped|${rKey}`,
+            name,
+            kode,
+            kode_sub_kegiatan: r.kode_sub_kegiatan,
+            parentName,
+            anggaran: 0,
+            pagu_spd: 0,
+            realisasi: 0,
+            skpd: r.skpd || 'LAINNYA',
+            isUnmapped: true
+          };
+        }
+        unmatchedRealizations[rKey].realisasi += value;
       }
     });
 
-    // 3. Tambahkan data realisasi yang TIDAK ditemukan di Master (Anomali)
-    // Jika masih ada sisa di realizationMap, berarti ada transaksi untuk kode belanja yang tidak ada anggarannya
-    Object.entries(realizationMap).forEach(([rKey, value]) => {
-      const [skpdName] = rKey.split('|');
-      const unmappedKey = `unmapped|${rKey}`;
-      
-      // Cari data asli untuk mendapatkan nama belanja
-      const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === rKey);
-
-      // Filter anomali juga jika filter belanja aktif
-      if (selectedBelanja !== 'all' && original?.belanja !== selectedBelanja) return;
-      // Filter anomali jika filter sub kegiatan aktif (anomali biasanya tidak punya sub kegiatan yang jelas di master)
-      if (selectedSubKegiatan !== 'all' && original?.sub_kegiatan !== selectedSubKegiatan) return;
-
-      aggregated[unmappedKey] = {
-        key: unmappedKey,
-        name: original?.belanja || 'Kode Belanja Tidak Terdaftar di Master',
-        kode: original?.kode_belanja || '?',
-        kode_sub_kegiatan: original?.kode_sub_kegiatan,
-        parentName: 'DATA TIDAK TERPETAKAN (ANOMALI)',
-        anggaran: 0,
-        pagu_spd: 0,
-        realisasi: value,
-        skpd: original?.skpd || skpdName.toUpperCase(),
-        isUnmapped: true
-      };
+    // Gabungkan realisasi anomali ke data laporan utama
+    Object.values(unmatchedRealizations).forEach(item => {
+      aggregated[item.key] = item;
     });
 
-    // 4. Filter berdasarkan pencarian dan pengecualian "LAINNYA" untuk level bidang
+    // 3. Filter berdasarkan pencarian dan pengecualian "LAINNYA" untuk level bidang
     return Object.values(aggregated).filter(item => {
       const matchesSearch = clean(item.name).includes(clean(searchTerm)) || 
                            clean(item.kode).includes(clean(searchTerm)) ||
