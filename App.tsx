@@ -44,7 +44,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       try {
         const parsed = JSON.parse(this.state.error?.message || "");
         if (parsed.error && parsed.operationType) {
-          errorMessage = `Kesalahan Firestore (${parsed.operationType}): ${parsed.error}`;
+          errorMessage = `Kesalahan Aplikasi (${parsed.operationType}): ${parsed.error}`;
         }
       } catch (e) {
         errorMessage = this.state.error?.message || errorMessage;
@@ -229,6 +229,9 @@ const App: React.FC = () => {
         return;
       }
 
+      // Pastikan tab/sheet yang dibutuhkan terbuat secara otomatis di spreadsheet yang dikoneksikan
+      await SheetsService.ensureSheetsExist(token, id);
+
       const url = `https://docs.google.com/spreadsheets/d/${id}/edit`;
       setSpreadsheetId(id);
       setSpreadsheetUrl(url);
@@ -261,7 +264,7 @@ const App: React.FC = () => {
       if (!token) return;
     }
 
-    const confirmed = window.confirm("Apakah Anda yakin ingin menarik data? Tindakan ini akan menimpa seluruh data lokal & Firestore Anda dengan data dari Spreadsheet.");
+    const confirmed = window.confirm("Apakah Anda yakin ingin menarik data? Tindakan ini akan menimpa seluruh data lokal di browser Anda dengan data dari Spreadsheet.");
     if (!confirmed) return;
 
     setIsSyncing(true);
@@ -273,7 +276,7 @@ const App: React.FC = () => {
       setSpendingData(result.spendingData);
       setHibahData(result.hibahData);
 
-      // Save sync results and rewrite Firestore collections
+      // Save sync results and rewrite local storage entries
       await Promise.all([
         DataService.syncMasterData(result.masterData),
         DataService.syncRealizationData(result.realizationData),
@@ -281,7 +284,7 @@ const App: React.FC = () => {
         DataService.syncHibahData(result.hibahData)
       ]);
 
-      setSheetSuccess("Data berhasil ditarik dari Google Spreadsheet ke Cloud Firestore terpusat!");
+      setSheetSuccess("Data berhasil ditarik dari Google Spreadsheet ke penyimpanan lokal browser!");
     } catch (err: any) {
       console.error(err);
       setSheetError(err?.message || "Gagal menarik data dari spreadsheet.");
@@ -390,13 +393,13 @@ const App: React.FC = () => {
     setMasterData(newData);
     try {
       await DataService.saveMasterData(newData);
-      // Re-fetch to ensure local state matches server exactly
+      // Re-fetch to ensure local state matches storage exactly
       const freshData = await DataService.getMasterData();
       setMasterData(freshData);
       await triggerAutoPush(freshData, realizationData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data master", err);
-      alert("Gagal menyimpan data master ke server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menyimpan data master ke penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -438,11 +441,11 @@ const App: React.FC = () => {
     try {
       await DataService.clearMasterData();
       await triggerAutoPush([], realizationData, spendingData, hibahData);
-      alert("Semua data master berhasil dihapus dari server.");
+      alert("Semua data master berhasil dihapus.");
     } catch (err) {
       console.error("Gagal menghapus semua data master", err);
       setMasterData(backup);
-      alert("Gagal menghapus data master dari server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menghapus data master dari penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -458,7 +461,7 @@ const App: React.FC = () => {
       await triggerAutoPush(masterData, freshData, spendingData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data realisasi", err);
-      alert("Gagal menyimpan data realisasi ke server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menyimpan data realisasi ke penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -500,11 +503,11 @@ const App: React.FC = () => {
     try {
       await DataService.clearRealizationData();
       await triggerAutoPush(masterData, [], spendingData, hibahData);
-      alert("Semua data realisasi berhasil dihapus dari server.");
+      alert("Semua data realisasi berhasil dihapus.");
     } catch (err) {
       console.error("Gagal menghapus semua data realisasi", err);
       setRealizationData(backup);
-      alert("Gagal menghapus data realisasi dari server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menghapus data realisasi dari penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -518,7 +521,7 @@ const App: React.FC = () => {
       await triggerAutoPush(masterData, realizationData, newData, hibahData);
     } catch (err) {
       console.error("Gagal sinkronisasi data belanja", err);
-      alert("Gagal menyimpan data belanja ke server.");
+      alert("Gagal menyimpan data belanja.");
     } finally {
       setIsSyncing(false);
     }
@@ -534,7 +537,7 @@ const App: React.FC = () => {
       await triggerAutoPush(masterData, realizationData, spendingData, freshData);
     } catch (err) {
       console.error("Gagal sinkronisasi data hibah", err);
-      alert("Gagal menyimpan data hibah ke server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menyimpan data hibah ke penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -576,11 +579,11 @@ const App: React.FC = () => {
     try {
       await DataService.clearHibahData();
       await triggerAutoPush(masterData, realizationData, spendingData, []);
-      alert("Semua data hibah berhasil dihapus dari server.");
+      alert("Semua data hibah berhasil dihapus.");
     } catch (err) {
       console.error("Gagal menghapus semua data hibah", err);
       setHibahData(backup);
-      alert("Gagal menghapus data hibah dari server. Silakan periksa koneksi internet Anda.");
+      alert("Gagal menghapus data hibah dari penyimpanan lokal browser.");
     } finally {
       setIsSyncing(false);
     }
@@ -604,14 +607,14 @@ const App: React.FC = () => {
             <div className="inline-flex p-4 bg-indigo-100 rounded-full text-indigo-600 mb-4">
               <CircleDollarSign size={40} />
             </div>
-            <h1 className="text-2xl font-black text-gray-900">FinRealize Cloud</h1>
-            <p className="text-gray-500 text-sm font-medium">Masuk untuk mengakses database terpusat</p>
+            <h1 className="text-2xl font-black text-gray-900">FinRealize Sheets</h1>
+            <p className="text-gray-500 text-sm font-medium">Masuk untuk mengelola Google Spreadsheet Anda</p>
           </div>
           
           <div className="space-y-6">
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
               <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                Aplikasi ini sekarang terhubung ke <b>Google Cloud Firestore</b>. Semua data akan tersinkronisasi secara real-time antar pengguna.
+                Aplikasi ini sekarang terhubung ke <b>Google Sheets</b> sebagai basis data tunggal (single source of truth). Data disimpan aman di Google Drive Anda.
               </p>
             </div>
 

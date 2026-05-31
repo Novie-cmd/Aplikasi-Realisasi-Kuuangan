@@ -285,7 +285,7 @@ const SpreadsheetSettings: React.FC<Props> = ({
               <div className="space-y-1">
                 <h3 className="text-xs font-bold text-gray-800">Tarik Data (Pull)</h3>
                 <p className="text-[11px] text-gray-500 leading-relaxed">
-                  Ambil data dari Google Spreadsheet Anda untuk menimpa database lokal dan Firestore terpusat Anda.
+                  Ambil data dari Google Spreadsheet Anda untuk menimpa penyimpanan lokal aplikasi Anda.
                 </p>
                 <button
                   onClick={handlePullFromSpreadsheet}
@@ -301,7 +301,7 @@ const SpreadsheetSettings: React.FC<Props> = ({
               <div className="space-y-1">
                 <h3 className="text-xs font-bold text-gray-800">Kirim Data (Push)</h3>
                 <p className="text-[11px] text-gray-500 leading-relaxed">
-                  Kirim data lokal/Firestore Anda saat ini untuk menimpa data yang ada di file Google Spreadsheet.
+                  Kirim data penyimpanan lokal aplikasi Anda saat ini untuk menimpa data yang ada di file Google Spreadsheet.
                 </p>
                 <button
                   onClick={handlePushToSpreadsheet}

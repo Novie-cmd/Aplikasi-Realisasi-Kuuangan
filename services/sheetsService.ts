@@ -100,6 +100,91 @@ export const SheetsService = {
   },
 
   /**
+   * Memastikan seluruh sheet / tab yang diperlukan eksis di spreadsheet.
+   * Jika ada yang kurang (misal pada spreadsheet yang baru dikoneksikan),
+   * kita akan menambahkannya secara otomatis.
+   */
+  async ensureSheetsExist(accessToken: string, spreadsheetId: string): Promise<void> {
+    try {
+      const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) {
+        throw new Error(`Gagal memeriksa tab spreadsheet: ${await res.text()}`);
+      }
+      const data = await res.json();
+      const existingTitles = (data.sheets || []).map((s: any) => s.properties?.title as string);
+
+      const requiredTitles = ["Master_Data", "Realisasi", "Data_Belanja", "Dana_Hibah"];
+      const missingTitles = requiredTitles.filter(title => !existingTitles.includes(title));
+
+      if (missingTitles.length > 0) {
+        console.log("Menambahkan tab yang kurang:", missingTitles);
+        const requests = missingTitles.map(title => ({
+          addSheet: {
+            properties: {
+              title: title
+            }
+          }
+        }));
+
+        const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ requests }),
+        });
+
+        if (!updateRes.ok) {
+          throw new Error(`Gagal membuat tab baru di spreadsheet: ${await updateRes.text()}`);
+        }
+
+        // Tulis header default untuk tab yang baru saja dibuat
+        const dataUpdate = [];
+        const masterHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "anggaran", "realisasi", "pagu_spd"];
+        const realizationHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "realisasi", "keterangan_dokumen"];
+        const spendingHeaders = ["id", "kode_belanja", "belanja"];
+        const hibahHeaders = ["id", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "kode_rekening", "uraian", "penerima_hibah", "anggaran", "spd", "realisasi", "sisa_spd", "sisa_realisasi"];
+
+        if (missingTitles.includes("Master_Data")) {
+          dataUpdate.push({ range: "Master_Data!A1:N1", values: [masterHeaders] });
+        }
+        if (missingTitles.includes("Realisasi")) {
+          dataUpdate.push({ range: "Realisasi!A1:M1", values: [realizationHeaders] });
+        }
+        if (missingTitles.includes("Data_Belanja")) {
+          dataUpdate.push({ range: "Data_Belanja!A1:C1", values: [spendingHeaders] });
+        }
+        if (missingTitles.includes("Dana_Hibah")) {
+          dataUpdate.push({ range: "Dana_Hibah!A1:M1", values: [hibahHeaders] });
+        }
+
+        if (dataUpdate.length > 0) {
+          const headerRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              valueInputOption: VAL_OPTION,
+              data: dataUpdate,
+            }),
+          });
+          if (!headerRes.ok) {
+            console.warn("Gagal menulis header untuk tab baru:", await headerRes.text());
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Gagal memastikan tab spreadsheet ada:", err);
+      throw err;
+    }
+  },
+
+  /**
    * Mengirim (Push) data lokal ke spreadsheet
    */
   async pushData(
@@ -110,6 +195,9 @@ export const SheetsService = {
     spendingData: ExpenditureData[],
     hibahData: HibahData[]
   ): Promise<void> {
+    // Pastikan seluruh sheet tujuan eksis sebelum mengirim data
+    await this.ensureSheetsExist(accessToken, spreadsheetId);
+
     // 1. Bersihkan semua baris data lama (mengosongkan sheet di bawah header secara massal)
     // Range A2:Z1000000 dikosongkan terlebih dahulu
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchClear`, {
@@ -210,6 +298,9 @@ export const SheetsService = {
    * Menarik (Pull) data dari spreadsheet
    */
   async pullData(accessToken: string, spreadsheetId: string): Promise<PullResult> {
+    // Pastikan seluruh sheet eksis sebelum menarik data
+    await this.ensureSheetsExist(accessToken, spreadsheetId);
+
     const ranges = ["Master_Data!A2:N100000", "Realisasi!A2:M100000", "Data_Belanja!A2:C100000", "Dana_Hibah!A2:M100000"];
 
     const queryParams = ranges.map((r) => `ranges=${encodeURIComponent(r)}`).join("&");
