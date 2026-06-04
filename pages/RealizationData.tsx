@@ -256,13 +256,22 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         const importSessionId = Date.now();
 
         const formattedData: RealizationData[] = jsonData.map((row, index) => {
-          const kode_skpd = String(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']) || '').trim();
-          const kode_program = String(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']) || '').trim();
-          const kode_kegiatan = String(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']) || '').trim();
-          const kode_sub_kegiatan = String(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']) || '').trim();
-          const kode_belanja = String(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']) || '').trim();
+          const cleanText = (v: any) => String(v || '')
+            .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const cleanCode = (v: any) => String(v || '')
+            .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '')
+            .replace(/\s+/g, '')
+            .trim();
+
+          const kode_skpd = cleanCode(findValue(row, ['Kode SKPD', 'Kd SKPD', 'Kd_SKPD']));
+          const kode_program = cleanCode(findValue(row, ['Kode Program', 'Kd Program', 'Kd_Prog']));
+          const kode_kegiatan = cleanCode(findValue(row, ['Kode Kegiatan', 'Kd Kegiatan', 'Kd_Keg']));
+          const kode_sub_kegiatan = cleanCode(findValue(row, ['Kode Sub Kegiatan', 'Kd Sub Kegiatan', 'Kd_Sub_Keg']));
+          const kode_belanja = cleanCode(findValue(row, ['Kode Belanja', 'Kd Belanja', 'Kd_Rek', 'Rekening', 'Kode Rekening']));
           const realisasi = parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']));
-          const keterangan_dokumen = String(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']) || '').trim();
+          const keterangan_dokumen = cleanText(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']));
           
           // Use import session timestamp + index to ensure uniqueness across different uploads
           const rawId = `r-${importSessionId}-${index}`;
@@ -270,15 +279,15 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
 
           return {
             id,
-            skpd: String(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD']) || '').trim(),
+            skpd: cleanText(findValue(row, ['SKPD', 'Satuan Kerja', 'Nama SKPD'])),
             kode_skpd,
-            program: String(findValue(row, ['Program', 'Nama Program']) || '').trim(),
+            program: cleanText(findValue(row, ['Program', 'Nama Program'])),
             kode_program,
-            kegiatan: String(findValue(row, ['Kegiatan', 'Nama Kegiatan']) || '').trim(),
+            kegiatan: cleanText(findValue(row, ['Kegiatan', 'Nama Kegiatan'])),
             kode_kegiatan,
-            sub_kegiatan: String(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan']) || '').trim(),
+            sub_kegiatan: cleanText(findValue(row, ['Sub Kegiatan', 'Sub_Kegiatan', 'Nama Sub Kegiatan'])),
             kode_sub_kegiatan,
-            belanja: String(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening']) || '').trim(),
+            belanja: cleanText(findValue(row, ['Nama Belanja', 'Uraian', 'Belanja', 'Uraian Rekening'])),
             kode_belanja,
             realisasi,
             keterangan_dokumen,

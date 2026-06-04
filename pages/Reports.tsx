@@ -72,6 +72,25 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       .toLowerCase();
   };
 
+  const getCleanProgramName = (kode_program: string, programFallback: string): string => {
+    const masterMatch = masterData.find(m => clean(m.kode_program) === clean(kode_program));
+    return masterMatch ? masterMatch.program : (programFallback || '');
+  };
+
+  const getBidangName = (programName: string): string => {
+    const cleaned = (programName || '')
+      .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+    return BIDANG_MAP[cleaned] || "LAINNYA";
+  };
+
+  const getBidangFromRealization = (r: RealizationData): string => {
+    const programName = getCleanProgramName(r.kode_program, r.program);
+    return getBidangName(programName);
+  };
+
   const reportData = useMemo(() => {
     const aggregated: Record<string, { 
       key: string;
@@ -99,7 +118,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
       // Tentukan kunci agregasi berdasarkan level yang dipilih
       if (level === 'bidang') {
-        name = BIDANG_MAP[m.program.toUpperCase()] || "LAINNYA";
+        name = getBidangName(m.program);
         key = `bidang|${name}`;
         kode = "BIDANG";
       } else if (level === 'program') {
@@ -160,7 +179,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
       let rKey = '';
       if (level === 'bidang') {
-        const name = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+        const name = getBidangFromRealization(r);
         rKey = `bidang|${name}`;
       } else if (level === 'program') {
         rKey = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
@@ -184,19 +203,22 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           let parentName = 'DATA TIDAK TERPETAKAN (ANOMALI)';
 
           if (level === 'bidang') {
-            name = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+            name = getBidangFromRealization(r);
             kode = "BIDANG";
           } else if (level === 'program') {
-            name = r.program || 'Program Tidak Terdaftar';
+            name = getCleanProgramName(r.kode_program, r.program) || 'Program Tidak Terdaftar';
             kode = r.kode_program || '?';
           } else if (level === 'kegiatan') {
-            name = r.kegiatan || 'Kegiatan Tidak Terdaftar';
+            const masterMatch = masterData.find(m => clean(m.kode_kegiatan) === clean(r.kode_kegiatan));
+            name = masterMatch ? masterMatch.kegiatan : (r.kegiatan || 'Kegiatan Tidak Terdaftar');
             kode = r.kode_kegiatan || '?';
-            parentName = r.program || 'PROGRAM TIDAK TERDAFTAR';
+            parentName = getCleanProgramName(r.kode_program, r.program) || 'PROGRAM TIDAK TERDAFTAR';
           } else {
-            name = r.belanja || 'Kode Belanja Tidak Terdaftar di Master';
+            const masterMatch = masterData.find(m => clean(m.kode_belanja) === clean(r.kode_belanja) && clean(m.kode_sub_kegiatan) === clean(r.kode_sub_kegiatan));
+            const subMatch = masterMatch || masterData.find(m => clean(m.kode_sub_kegiatan) === clean(r.kode_sub_kegiatan));
+            name = masterMatch ? masterMatch.belanja : (r.belanja || 'Kode Belanja Tidak Terdaftar di Master');
             kode = r.kode_belanja || '?';
-            parentName = r.sub_kegiatan || 'SUB KEGIATAN TIDAK TERDAFTAR';
+            parentName = subMatch ? subMatch.sub_kegiatan : (r.sub_kegiatan || 'SUB KEGIATAN TIDAK TERDAFTAR');
           }
 
           unmatchedRealizations[rKey] = {
@@ -288,7 +310,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
   const filteredDetails = useMemo(() => {
     if (!detailView) return [];
     return realizationData.filter(r => {
-      const rBidang = BIDANG_MAP[r.program.toUpperCase()] || "LAINNYA";
+      const rBidang = getBidangFromRealization(r);
       const rKeyBidang = `bidang|${rBidang}`;
       const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
       const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;

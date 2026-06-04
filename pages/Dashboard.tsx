@@ -39,6 +39,25 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
       .toLowerCase();
   };
 
+  const getCleanProgramName = (kode_program: string, programFallback: string): string => {
+    const masterMatch = masterData.find(m => clean(m.kode_program) === clean(kode_program));
+    return masterMatch ? masterMatch.program : (programFallback || '');
+  };
+
+  const getBidangName = (programName: string): string => {
+    const cleaned = (programName || '')
+      .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+    return BIDANG_MAP[cleaned] || "LAINNYA";
+  };
+
+  const getBidangFromRealization = (r: RealizationData): string => {
+    const programName = getCleanProgramName(r.kode_program, r.program);
+    return getBidangName(programName);
+  };
+
   const stats = useMemo(() => {
     // 1. Buat map realisasi per SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja
     const realizationMap: Record<string, number> = {};
@@ -87,7 +106,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     });
 
     masterData.forEach(m => {
-      const bidangName = BIDANG_MAP[m.program.toUpperCase()] || "LAINNYA";
+      const bidangName = getBidangName(m.program);
       if (!groups[bidangName]) groups[bidangName] = { name: bidangName, anggaran: 0, realisasi: 0 };
       groups[bidangName].anggaran += Number(m.anggaran) || 0;
       
@@ -102,7 +121,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     // Tambahkan realisasi anomali ke bidang terkait di chart
     Object.entries(realizationMap).forEach(([key, val]) => {
       const original = realizationData.find(rd => `${clean(rd.kode_skpd)}|${clean(rd.kode_program)}|${clean(rd.kode_kegiatan)}|${clean(rd.kode_sub_kegiatan)}|${clean(rd.kode_belanja)}` === key);
-      const bidangName = BIDANG_MAP[original?.program.toUpperCase() || ''] || 'LAINNYA';
+      const bidangName = original ? getBidangFromRealization(original) : 'LAINNYA';
       if (!groups[bidangName]) groups[bidangName] = { name: bidangName, anggaran: 0, realisasi: 0 };
       groups[bidangName].realisasi += val;
     });
