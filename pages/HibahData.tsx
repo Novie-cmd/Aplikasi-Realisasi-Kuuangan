@@ -141,8 +141,13 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
       return;
     }
 
-    if (formData.anggaran <= 0 || formData.spd <= 0) {
-      alert('Anggaran dan SPD harus lebih dari 0');
+    if (formData.anggaran <= 0) {
+      alert('Anggaran harus lebih dari 0');
+      return;
+    }
+
+    if (formData.spd < 0 || formData.realisasi < 0) {
+      alert('Angka SPD dan Realisasi tidak boleh kurang dari 0');
       return;
     }
 
