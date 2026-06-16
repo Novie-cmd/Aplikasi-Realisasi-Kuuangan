@@ -70,13 +70,13 @@ export const SheetsService = {
    */
   async initHeaders(accessToken: string, spreadsheetId: string): Promise<void> {
     const masterHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "anggaran", "realisasi", "pagu_spd"];
-    const realizationHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "realisasi", "keterangan_dokumen"];
+    const realizationHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "realisasi", "keterangan_dokumen", "tanggal"];
     const spendingHeaders = ["id", "kode_belanja", "belanja"];
     const hibahHeaders = ["id", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "kode_rekening", "uraian", "penerima_hibah", "anggaran", "spd", "realisasi", "sisa_spd", "sisa_realisasi"];
 
     const data = [
       { range: "Master_Data!A1:N1", values: [masterHeaders] },
-      { range: "Realisasi!A1:M1", values: [realizationHeaders] },
+      { range: "Realisasi!A1:N1", values: [realizationHeaders] },
       { range: "Data_Belanja!A1:C1", values: [spendingHeaders] },
       { range: "Dana_Hibah!A1:M1", values: [hibahHeaders] },
     ];
@@ -144,7 +144,7 @@ export const SheetsService = {
         // Tulis header default untuk tab yang baru saja dibuat
         const dataUpdate = [];
         const masterHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "anggaran", "realisasi", "pagu_spd"];
-        const realizationHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "realisasi", "keterangan_dokumen"];
+        const realizationHeaders = ["id", "skpd", "kode_skpd", "program", "kode_program", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "belanja", "kode_belanja", "realisasi", "keterangan_dokumen", "tanggal"];
         const spendingHeaders = ["id", "kode_belanja", "belanja"];
         const hibahHeaders = ["id", "kegiatan", "kode_kegiatan", "sub_kegiatan", "kode_sub_kegiatan", "kode_rekening", "uraian", "penerima_hibah", "anggaran", "spd", "realisasi", "sisa_spd", "sisa_realisasi"];
 
@@ -152,7 +152,7 @@ export const SheetsService = {
           dataUpdate.push({ range: "Master_Data!A1:N1", values: [masterHeaders] });
         }
         if (missingTitles.includes("Realisasi")) {
-          dataUpdate.push({ range: "Realisasi!A1:M1", values: [realizationHeaders] });
+          dataUpdate.push({ range: "Realisasi!A1:N1", values: [realizationHeaders] });
         }
         if (missingTitles.includes("Data_Belanja")) {
           dataUpdate.push({ range: "Data_Belanja!A1:C1", values: [spendingHeaders] });
@@ -243,6 +243,7 @@ export const SheetsService = {
       r.kode_belanja || "",
       r.realisasi || 0,
       r.keterangan_dokumen || "",
+      r.tanggal || "",
     ]);
 
     const spendingRows = spendingData.map((s) => [
@@ -270,7 +271,7 @@ export const SheetsService = {
     // 3. Gabungkan payload update
     const dataUpdate = [];
     if (masterRows.length > 0) dataUpdate.push({ range: `Master_Data!A2:N${masterRows.length + 1}`, values: masterRows });
-    if (realizationRows.length > 0) dataUpdate.push({ range: `Realisasi!A2:M${realizationRows.length + 1}`, values: realizationRows });
+    if (realizationRows.length > 0) dataUpdate.push({ range: `Realisasi!A2:N${realizationRows.length + 1}`, values: realizationRows });
     if (spendingRows.length > 0) dataUpdate.push({ range: `Data_Belanja!A2:C${spendingRows.length + 1}`, values: spendingRows });
     if (hibahRows.length > 0) dataUpdate.push({ range: `Dana_Hibah!A2:M${hibahRows.length + 1}`, values: hibahRows });
 
@@ -301,7 +302,7 @@ export const SheetsService = {
     // Pastikan seluruh sheet eksis sebelum menarik data
     await this.ensureSheetsExist(accessToken, spreadsheetId);
 
-    const ranges = ["Master_Data!A2:N100000", "Realisasi!A2:M100000", "Data_Belanja!A2:C100000", "Dana_Hibah!A2:M100000"];
+    const ranges = ["Master_Data!A2:N100000", "Realisasi!A2:N100000", "Data_Belanja!A2:C100000", "Dana_Hibah!A2:M100000"];
 
     const queryParams = ranges.map((r) => `ranges=${encodeURIComponent(r)}`).join("&");
     const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${queryParams}`, {
@@ -360,6 +361,7 @@ export const SheetsService = {
         kode_belanja: row[10] || "",
         realisasi: Number(row[11]) || 0,
         keterangan_dokumen: row[12] || "",
+        tanggal: row[13] || new Date().toISOString().substring(0, 10),
       });
     });
 
