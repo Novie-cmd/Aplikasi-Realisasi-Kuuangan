@@ -30,6 +30,7 @@ export interface RealizationData {
   kode_belanja: string;
   realisasi: number;
   keterangan_dokumen: string;
+  tanggal?: string;
 }
 
 export interface ExpenditureData {

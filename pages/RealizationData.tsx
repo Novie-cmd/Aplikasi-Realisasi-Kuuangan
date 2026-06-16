@@ -28,7 +28,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
     belanja: '',
     kode_belanja: '',
     realisasi: 0,
-    keterangan_dokumen: ''
+    keterangan_dokumen: '',
+    tanggal: new Date().toISOString().substring(0, 10)
   });
 
   const subKegiatanOptions = useMemo(() => {
@@ -134,7 +135,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             belanja: match.belanja,
             kode_belanja: match.kode_belanja,
             realisasi: formData.realisasi,
-            keterangan_dokumen: formData.keterangan_dokumen
+            keterangan_dokumen: formData.keterangan_dokumen,
+            tanggal: formData.tanggal || new Date().toISOString().substring(0, 10)
           };
         }
         return item;
@@ -155,7 +157,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         belanja: match.belanja,
         kode_belanja: match.kode_belanja,
         realisasi: formData.realisasi,
-        keterangan_dokumen: formData.keterangan_dokumen
+        keterangan_dokumen: formData.keterangan_dokumen,
+        tanggal: formData.tanggal || new Date().toISOString().substring(0, 10)
       };
       setData([newItem, ...data]);
     }
@@ -166,7 +169,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       belanja: '',
       kode_belanja: '',
       realisasi: 0,
-      keterangan_dokumen: ''
+      keterangan_dokumen: '',
+      tanggal: new Date().toISOString().substring(0, 10)
     });
     setShowForm(false);
   };
@@ -178,7 +182,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       belanja: row.belanja,
       kode_belanja: row.kode_belanja,
       realisasi: row.realisasi,
-      keterangan_dokumen: row.keterangan_dokumen || ''
+      keterangan_dokumen: row.keterangan_dokumen || '',
+      tanggal: row.tanggal || new Date().toISOString().substring(0, 10)
     });
     setEditingId(row.id);
     setShowForm(true);
@@ -193,7 +198,8 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       belanja: '',
       kode_belanja: '',
       realisasi: 0,
-      keterangan_dokumen: ''
+      keterangan_dokumen: '',
+      tanggal: new Date().toISOString().substring(0, 10)
     });
     setShowForm(false);
   };
@@ -219,6 +225,71 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
     const cleaned = String(val).replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.-]/g, '');
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
+  };
+
+  const parseExcelDate = (val: any): string => {
+    if (val === null || val === undefined || val === '') {
+      return new Date().toISOString().substring(0, 10);
+    }
+    
+    if (val instanceof Date) {
+      try {
+        return val.toISOString().substring(0, 10);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (typeof val === 'number') {
+      try {
+        const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+        if (!isNaN(date.getTime())) {
+          return date.toISOString().substring(0, 10);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const str = String(val).trim();
+    
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmyMatch) {
+      const day = dmyMatch[1].padStart(2, '0');
+      const month = dmyMatch[2].padStart(2, '0');
+      const year = dmyMatch[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    const ymdMatch = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (ymdMatch) {
+      const year = ymdMatch[1];
+      const month = ymdMatch[2].padStart(2, '0');
+      const day = ymdMatch[3].padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    try {
+      const parsed = new Date(str);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().substring(0, 10);
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return new Date().toISOString().substring(0, 10);
+  };
+
+  const formatDateIndo = (dateStr: string): string => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
   };
 
   const findValue = (row: any, keywords: string[]) => {
@@ -273,6 +344,9 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           const realisasi = parseNumber(findValue(row, ['Realisasi', 'Jumlah Realisasi', 'Nilai Realisasi', 'Total Realisasi']));
           const keterangan_dokumen = cleanText(findValue(row, ['Keterangan Dokumen', 'Keterangan', 'Ket Dokumen', 'Ket_Dokumen']));
           
+          const rawTanggal = findValue(row, ['Tanggal', 'Tgl', 'Tanggal SP2D', 'Tgl SP2D', 'Tanggal Dokumen', 'Tgl Dokumen', 'Tanggal Bukti', 'Tgl Bukti', 'Tanggal Realisasi', 'Tgl Realisasi', 'Date']);
+          const tanggal = parseExcelDate(rawTanggal);
+          
           // Use import session timestamp + index to ensure uniqueness across different uploads
           const rawId = `r-${importSessionId}-${index}`;
           const id = sanitizeId(rawId);
@@ -291,6 +365,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             kode_belanja,
             realisasi,
             keterangan_dokumen,
+            tanggal,
           };
         });
 
@@ -361,7 +436,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </button>
           </div>
           <form onSubmit={handleAddManual} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-end">
-            <div className="md:col-span-1 lg:col-span-3">
+            <div className="md:col-span-1 lg:col-span-4">
               <SearchableSelect 
                 label="Sub Kegiatan"
                 placeholder="Pilih Sub Kegiatan"
@@ -394,6 +469,16 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               />
             </div>
 
+            <div className="lg:col-span-3 space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tanggal Realisasi</label>
+              <input 
+                type="date" 
+                value={formData.tanggal}
+                onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
+                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-700"
+              />
+            </div>
+
             <div className="lg:col-span-4 space-y-1">
               <div className="flex items-center gap-3">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
@@ -420,7 +505,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               )}
             </div>
 
-            <div className="lg:col-span-8 space-y-1">
+            <div className="lg:col-span-5 space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</label>
               <input 
                 type="text" 
@@ -431,7 +516,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               />
             </div>
 
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <button 
                 type="submit"
                 className="w-full bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
@@ -466,6 +551,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
+              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Tanggal</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
               <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
@@ -485,6 +571,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
               i.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
               i.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
               (i.keterangan_dokumen && i.keterangan_dokumen.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              (i.tanggal && i.tanggal.includes(searchTerm)) ||
               i.kode_kegiatan.includes(searchTerm) ||
               i.kode_belanja.includes(searchTerm)
             ).map((row) => (
@@ -495,6 +582,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
                     <button onClick={() => handleDeleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Hapus"><Trash2 size={14} /></button>
                   </div>
                 </td>
+                <td className="px-4 py-3 text-sm font-medium text-indigo-900 whitespace-nowrap">{formatDateIndo(row.tanggal || '')}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
                 <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
                 <td className="px-4 py-3 text-sm font-mono">{row.kode_kegiatan}</td>

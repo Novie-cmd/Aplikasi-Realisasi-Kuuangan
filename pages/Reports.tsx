@@ -31,6 +31,47 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
   const [selectedBelanja, setSelectedBelanja] = useState<string>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  const setPresetBulanIni = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(year, today.getMonth() + 1, 0).getDate();
+    
+    setStartDate(`${year}-${month}-01`);
+    setEndDate(`${year}-${month}-${String(lastDay || 30).padStart(2, '0')}`);
+  };
+
+  const setPresetTriwulan = (q: number) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    if (q === 1) {
+      setStartDate(`${year}-01-01`);
+      setEndDate(`${year}-03-31`);
+    } else if (q === 2) {
+      setStartDate(`${year}-04-01`);
+      setEndDate(`${year}-06-30`);
+    } else if (q === 3) {
+      setStartDate(`${year}-07-01`);
+      setEndDate(`${year}-09-30`);
+    } else if (q === 4) {
+      setStartDate(`${year}-10-01`);
+      setEndDate(`${year}-12-31`);
+    }
+  };
+
+  const formatDateIndo = (dateStr: string): string => {
+    if (!dateStr) return 'Semua';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
   
   // Hibah specific filter states
   const [selectedHibahKegiatan, setSelectedHibahKegiatan] = useState<string>('all');
@@ -177,6 +218,13 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       if (selectedSubKegiatan !== 'all' && r.sub_kegiatan !== selectedSubKegiatan) return;
       if (selectedBelanja !== 'all' && r.belanja !== selectedBelanja) return;
 
+      // Filter berdasarkan Periode Tanggal
+      if (startDate || endDate) {
+        if (!r.tanggal) return;
+        if (startDate && r.tanggal < startDate) return;
+        if (endDate && r.tanggal > endDate) return;
+      }
+
       let rKey = '';
       if (level === 'bidang') {
         const name = getBidangFromRealization(r);
@@ -253,7 +301,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       
       return matchesSearch && !isOthersBidang;
     });
-  }, [masterData, realizationData, level, searchTerm, selectedSubKegiatan, selectedBelanja]);
+  }, [masterData, realizationData, level, searchTerm, selectedSubKegiatan, selectedBelanja, startDate, endDate]);
 
   const validationAlerts = useMemo(() => {
     const alerts = reportData.filter(item => item.realisasi > item.pagu_spd);
@@ -310,6 +358,13 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
   const filteredDetails = useMemo(() => {
     if (!detailView) return [];
     return realizationData.filter(r => {
+      // Filter berdasarkan Periode Tanggal
+      if (startDate || endDate) {
+        if (!r.tanggal) return false;
+        if (startDate && r.tanggal < startDate) return false;
+        if (endDate && r.tanggal > endDate) return false;
+      }
+
       const rBidang = getBidangFromRealization(r);
       const rKeyBidang = `bidang|${rBidang}`;
       const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
@@ -327,7 +382,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       if (detailView.level === 'kegiatan') return rKeyKegiatan === targetKey;
       return rKeySub === targetKey;
     });
-  }, [detailView, realizationData]);
+  }, [detailView, realizationData, startDate, endDate]);
 
   const formatIDR = (val: number) => new Intl.NumberFormat('id-ID').format(val);
 
@@ -530,6 +585,71 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
               placeholder="Cari Jenis Belanja..."
             />
           </div>
+
+          <div className="pt-4 border-t border-gray-100 flex flex-wrap items-end gap-4 print:hidden">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Dari Tanggal</label>
+              <input 
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="p-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-750"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">S.d Tanggal</label>
+              <input 
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="p-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-750"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <button 
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${!startDate && !endDate ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750'}`}
+              >
+                Semua
+              </button>
+              <button 
+                type="button"
+                onClick={setPresetBulanIni}
+                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+              >
+                Bulan Ini
+              </button>
+              <button 
+                type="button"
+                onClick={() => setPresetTriwulan(1)}
+                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+              >
+                Triwulan I
+              </button>
+              <button 
+                type="button"
+                onClick={() => setPresetTriwulan(2)}
+                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+              >
+                Triwulan II
+              </button>
+              <button 
+                type="button"
+                onClick={() => setPresetTriwulan(3)}
+                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+              >
+                Triwulan III
+              </button>
+              <button 
+                type="button"
+                onClick={() => setPresetTriwulan(4)}
+                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+              >
+                Triwulan IV
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
@@ -588,6 +708,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 <div>
                   <p><b>Filter Sub Kegiatan:</b> {selectedSubKegiatan === 'all' ? 'Semua' : selectedSubKegiatan}</p>
                   <p><b>Filter Jenis Belanja:</b> {selectedBelanja === 'all' ? 'Semua' : selectedBelanja}</p>
+                  {(startDate || endDate) && (
+                    <p><b>Periode Realisasi:</b> {formatDateIndo(startDate)} s.d {formatDateIndo(endDate)}</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p><b>Tanggal Cetak:</b> {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
