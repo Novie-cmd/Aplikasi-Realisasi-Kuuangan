@@ -72,6 +72,27 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       return dateStr;
     }
   };
+
+  const activePreset = useMemo(() => {
+    if (!startDate && !endDate) return 'semua';
+    
+    // Check match for Bulan Ini
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(year, today.getMonth() + 1, 0).getDate();
+    
+    const bulanIniStart = `${year}-${month}-01`;
+    const bulanIniEnd = `${year}-${month}-${String(lastDay || 30).padStart(2, '0')}`;
+    
+    if (startDate === bulanIniStart && endDate === bulanIniEnd) return 'bulan_ini';
+    if (startDate === `${year}-01-01` && endDate === `${year}-03-31`) return 'triwulan_1';
+    if (startDate === `${year}-04-01` && endDate === `${year}-06-30`) return 'triwulan_2';
+    if (startDate === `${year}-07-01` && endDate === `${year}-09-30`) return 'triwulan_3';
+    if (startDate === `${year}-10-01` && endDate === `${year}-12-31`) return 'triwulan_4';
+    
+    return 'custom';
+  }, [startDate, endDate]);
   
   // Hibah specific filter states
   const [selectedHibahKegiatan, setSelectedHibahKegiatan] = useState<string>('all');
@@ -609,42 +630,42 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             <div className="flex flex-wrap gap-1.5 items-center">
               <button 
                 onClick={() => { setStartDate(''); setEndDate(''); }}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${!startDate && !endDate ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'semua' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Semua
               </button>
               <button 
                 type="button"
                 onClick={setPresetBulanIni}
-                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'bulan_ini' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Bulan Ini
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(1)}
-                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_1' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Triwulan I
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(2)}
-                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_2' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Triwulan II
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(3)}
-                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_3' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Triwulan III
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(4)}
-                className="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border bg-white border-gray-200 text-gray-500 hover:text-gray-750"
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_4' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
               >
                 Triwulan IV
               </button>
