@@ -90,8 +90,8 @@ const App: React.FC = () => {
 
   // Google Sheets integration states
   const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
-  const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
-  const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(null);
+  const [spreadsheetId, setSpreadsheetId] = useState<string | null>("1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk");
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>("https://docs.google.com/spreadsheets/d/1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk/edit");
   const [isAutoSync, setIsAutoSync] = useState(true);
   const [sheetError, setSheetError] = useState<string | null>(null);
   const [sheetSuccess, setSheetSuccess] = useState<string | null>(null);
@@ -375,9 +375,13 @@ const App: React.FC = () => {
         setHibahData(h);
         
         if (settings) {
-          setSpreadsheetId(settings.spreadsheetId || null);
-          setSpreadsheetUrl(settings.spreadsheetUrl || null);
+          setSpreadsheetId(settings.spreadsheetId || "1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk");
+          setSpreadsheetUrl(settings.spreadsheetUrl || "https://docs.google.com/spreadsheets/d/1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk/edit");
           setIsAutoSync(settings.isAutoSync ?? true);
+        } else {
+          setSpreadsheetId("1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk");
+          setSpreadsheetUrl("https://docs.google.com/spreadsheets/d/1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk/edit");
+          setIsAutoSync(true);
         }
       } catch (err) {
         console.error("Gagal memuat data", err);

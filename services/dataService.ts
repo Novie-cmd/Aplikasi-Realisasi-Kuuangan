@@ -153,7 +153,19 @@ export const DataService = {
     try {
       const key = getLocalStorageKey(`settings_${id}`);
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      
+      if (id === "google_sheets") {
+        if (!parsed || !parsed.spreadsheetId) {
+          return {
+            spreadsheetId: "1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk",
+            spreadsheetUrl: "https://docs.google.com/spreadsheets/d/1EgFSaxmXYmIYQ0gkufm0p4vdMaGc4ElXnqjE3A4GqIk/edit",
+            isAutoSync: true,
+            ...parsed
+          };
+        }
+      }
+      return parsed;
     } catch (e) {
       console.error("Gagal mengambil settings dari localStorage:", e);
       return null;
