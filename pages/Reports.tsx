@@ -1,9 +1,11 @@
 
 import React, { useMemo, useState } from 'react';
-import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle, Printer, X, Eye, List, Gift, CircleDollarSign } from 'lucide-react';
+import { FileSpreadsheet, Download, Filter, Search, Database, Info, AlertTriangle, AlertCircle, Printer, X, Eye, List, Gift, CircleDollarSign, Calendar, PieChart } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData, HibahData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
+import { MonthlyReport } from '../components/MonthlyReport';
+import { QuarterlyReport } from '../components/QuarterlyReport';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Props {
@@ -26,7 +28,7 @@ const BIDANG_MAP: Record<string, string> = {
 };
 
 const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData = [] }) => {
-  const [reportType, setReportType] = useState<'apbd' | 'hibah'>('apbd');
+  const [reportType, setReportType] = useState<'apbd' | 'bulanan' | 'triwulan' | 'hibah'>('apbd');
   const [level, setLevel] = useState<ReportLevel>('bidang');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
@@ -411,6 +413,86 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
     window.print();
   };
 
+  const handleExportApbdExcel = () => {
+    const title = `Laporan_Realisasi_APBD_${level}_${new Date().toISOString().substring(0, 10)}`;
+    const dataToExport = reportData.map((row, idx) => ({
+      'No': idx + 1,
+      'SKPD': row.skpd,
+      ...(level === 'sub_kegiatan' ? { 'Kode Sub Kegiatan': row.kode_sub_kegiatan || '-' } : {}),
+      'Kode': row.kode,
+      'Uraian': row.name,
+      'Pagu Anggaran': row.anggaran,
+      'Pagu SPD': row.pagu_spd,
+      'Realisasi': row.realisasi,
+      'Sisa SPD': row.pagu_spd - row.realisasi,
+      'Sisa Anggaran': row.anggaran - row.realisasi,
+      '% Capaian': row.anggaran > 0 ? ((row.realisasi / row.anggaran) * 100).toFixed(2) + '%' : '0%'
+    }));
+
+    const totalRow = {
+      'No': '',
+      'SKPD': 'TOTAL',
+      ...(level === 'sub_kegiatan' ? { 'Kode Sub Kegiatan': '' } : {}),
+      'Kode': '',
+      'Uraian': 'TOTAL SELURUHNYA',
+      'Pagu Anggaran': totals.anggaran,
+      'Pagu SPD': totals.spd,
+      'Realisasi': totals.realisasi,
+      'Sisa SPD': totals.spd - totals.realisasi,
+      'Sisa Anggaran': totals.anggaran - totals.realisasi,
+      '% Capaian': totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(2) + '%' : '0%'
+    };
+    dataToExport.push(totalRow as any);
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Laporan APBD');
+    XLSX.writeFile(wb, `${title}.xlsx`);
+  };
+
+  const handleExportHibahExcel = () => {
+    const title = `Laporan_Dana_Hibah_${new Date().toISOString().substring(0, 10)}`;
+    const dataToExport = filteredHibahReportData.map((row, idx) => ({
+      'No': idx + 1,
+      'Kode Kegiatan': row.kode_kegiatan || '-',
+      'Nama Kegiatan': row.kegiatan,
+      'Kode Sub Kegiatan': row.kode_sub_kegiatan || '-',
+      'Kode Rekening': row.kode_rekening || '-',
+      'Uraian': row.uraian || '-',
+      'Penerima Hibah': row.penerima_hibah || '-',
+      'Nama Sub Kegiatan': row.sub_kegiatan,
+      'Pagu Anggaran': row.anggaran,
+      'Pagu SPD': row.spd,
+      'Realisasi': row.realisasi,
+      'Sisa SPD': row.spd - row.realisasi,
+      'Sisa Anggaran': row.anggaran - row.realisasi,
+      '% Capaian': row.anggaran > 0 ? ((row.realisasi / row.anggaran) * 100).toFixed(2) + '%' : '0%'
+    }));
+
+    const totalRow = {
+      'No': '',
+      'Kode Kegiatan': '',
+      'Nama Kegiatan': '',
+      'Kode Sub Kegiatan': '',
+      'Kode Rekening': '',
+      'Uraian': '',
+      'Penerima Hibah': '',
+      'Nama Sub Kegiatan': 'TOTAL SELURUHNYA (HIBAH)',
+      'Pagu Anggaran': hibahTotals.anggaran,
+      'Pagu SPD': hibahTotals.spd,
+      'Realisasi': hibahTotals.realisasi,
+      'Sisa SPD': hibahTotals.sisa_spd,
+      'Sisa Anggaran': hibahTotals.sisa_realisasi,
+      '% Capaian': hibahTotals.anggaran > 0 ? ((hibahTotals.realisasi / hibahTotals.anggaran) * 100).toFixed(2) + '%' : '0%'
+    };
+    dataToExport.push(totalRow as any);
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Laporan Hibah');
+    XLSX.writeFile(wb, `${title}.xlsx`);
+  };
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -437,10 +519,10 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         }
       `}</style>
       {/* Tab Switcher */}
-      <div className="flex bg-gray-100 p-1.5 rounded-2xl border w-fit print:hidden">
+      <div className="flex bg-gray-100 p-1.5 rounded-2xl border w-fit print:hidden overflow-x-auto max-w-full gap-1">
         <button
           onClick={() => setReportType('apbd')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'apbd'
               ? 'bg-white text-indigo-600 shadow-sm'
               : 'text-gray-500 hover:text-gray-800'
@@ -450,8 +532,30 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           Laporan APBD Utama
         </button>
         <button
+          onClick={() => setReportType('bulanan')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
+            reportType === 'bulanan'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <Calendar size={16} />
+          Realisasi Per Bulan
+        </button>
+        <button
+          onClick={() => setReportType('triwulan')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
+            reportType === 'triwulan'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <PieChart size={16} />
+          Realisasi Per Triwulan
+        </button>
+        <button
           onClick={() => setReportType('hibah')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase transition-all ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'hibah'
               ? 'bg-white text-indigo-600 shadow-sm'
               : 'text-gray-500 hover:text-gray-800'
@@ -462,8 +566,18 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         </button>
       </div>
 
+      {/* Render Realisasi Per Bulan Component */}
+      {reportType === 'bulanan' && (
+        <MonthlyReport masterData={masterData} realizationData={realizationData} />
+      )}
+
+      {/* Render Realisasi Per Triwulan Component */}
+      {reportType === 'triwulan' && (
+        <QuarterlyReport masterData={masterData} realizationData={realizationData} />
+      )}
+
       {/* Header Statistics & Info */}
-      {reportType === 'apbd' ? (
+      {reportType === 'apbd' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Database size={20} /></div>
@@ -486,7 +600,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </p>
           </div>
         </div>
-      ) : (
+      )}
+
+      {reportType === 'hibah' && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Gift size={20} /></div>
@@ -555,7 +671,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         </div>
       )}
 
-      {reportType === 'apbd' ? (
+      {reportType === 'apbd' && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border overflow-x-auto no-scrollbar">
@@ -580,6 +696,13 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                   className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
                 />
               </div>
+              <button 
+                onClick={handleExportApbdExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+              >
+                <Download size={18} />
+                <span>Excel</span>
+              </button>
               <button 
                 onClick={handlePrint}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
@@ -672,7 +795,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {reportType === 'hibah' && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h3 className="text-sm font-black text-gray-750 uppercase tracking-widest flex items-center gap-2">
@@ -690,6 +815,13 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                   className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
                 />
               </div>
+              <button 
+                onClick={handleExportHibahExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+              >
+                <Download size={18} />
+                <span>Excel</span>
+              </button>
               <button 
                 onClick={handlePrint}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
@@ -719,7 +851,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
+      {(reportType === 'apbd' || reportType === 'hibah') && (
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
         {reportType === 'apbd' ? (
           <>
             <div className="hidden print:block mb-6 text-center">
@@ -922,6 +1055,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           </>
         )}
       </div>
+      )}
 
       {/* Detail Modal */}
       <AnimatePresence>
