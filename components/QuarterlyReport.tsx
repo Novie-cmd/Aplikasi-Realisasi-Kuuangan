@@ -79,10 +79,36 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
       isUnmapped?: boolean;
     }> = {};
 
+    // Secondary maps for fallback matching if kode_skpd / kode_program differ slightly in SP2D
+    const subKegBelanjaMap: Record<string, string> = {};
+    const kegiatanMap: Record<string, string> = {};
+    const programMap: Record<string, string> = {};
+    const bidangMap: Record<string, string> = {};
+
+    // Filter codes lookup for robust dropdown filtering (case-insensitive & code-based)
+    const selectedSubKegCodes = new Set<string>();
+    const selectedBelanjaCodes = new Set<string>();
+
+    if (selectedSubKegiatan !== 'all') {
+      masterData.forEach(m => {
+        if (clean(m.sub_kegiatan) === clean(selectedSubKegiatan) && m.kode_sub_kegiatan) {
+          selectedSubKegCodes.add(clean(m.kode_sub_kegiatan));
+        }
+      });
+    }
+
+    if (selectedBelanja !== 'all') {
+      masterData.forEach(m => {
+        if (clean(m.belanja) === clean(selectedBelanja) && m.kode_belanja) {
+          selectedBelanjaCodes.add(clean(m.kode_belanja));
+        }
+      });
+    }
+
     // 1. Master Data iteration
     masterData.forEach(m => {
-      if (selectedSubKegiatan !== 'all' && m.sub_kegiatan !== selectedSubKegiatan) return;
-      if (selectedBelanja !== 'all' && m.belanja !== selectedBelanja) return;
+      if (selectedSubKegiatan !== 'all' && clean(m.sub_kegiatan) !== clean(selectedSubKegiatan)) return;
+      if (selectedBelanja !== 'all' && clean(m.belanja) !== clean(selectedBelanja)) return;
 
       let key = '';
       let name = '';
@@ -93,20 +119,24 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
         name = getBidangName(m.program);
         key = `bidang|${name}`;
         kode = 'BIDANG';
+        bidangMap[name] = key;
       } else if (level === 'program') {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}`;
         name = m.program;
         kode = m.kode_program;
+        programMap[clean(m.kode_program)] = key;
       } else if (level === 'kegiatan') {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}`;
         name = m.kegiatan;
         kode = m.kode_kegiatan;
         parentName = m.program;
+        kegiatanMap[clean(m.kode_kegiatan)] = key;
       } else {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
         name = m.belanja;
         kode = m.kode_belanja;
         parentName = m.sub_kegiatan;
+        subKegBelanjaMap[`${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`] = key;
       }
 
       if (!aggregated[key]) {
@@ -144,8 +174,16 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
     }> = {};
 
     realizationData.forEach(r => {
-      if (selectedSubKegiatan !== 'all' && r.sub_kegiatan !== selectedSubKegiatan) return;
-      if (selectedBelanja !== 'all' && r.belanja !== selectedBelanja) return;
+      if (selectedSubKegiatan !== 'all') {
+        const matchSub = clean(r.sub_kegiatan) === clean(selectedSubKegiatan) || 
+                         (r.kode_sub_kegiatan && selectedSubKegCodes.has(clean(r.kode_sub_kegiatan)));
+        if (!matchSub) return;
+      }
+      if (selectedBelanja !== 'all') {
+        const matchBel = clean(r.belanja) === clean(selectedBelanja) || 
+                         (r.kode_belanja && selectedBelanjaCodes.has(clean(r.kode_belanja)));
+        if (!matchBel) return;
+      }
 
       const dateInfo = parseDateInfo(r.tanggal);
       if (selectedYear !== 'all' && dateInfo.year && String(dateInfo.year) !== selectedYear) {
@@ -169,9 +207,35 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
         ? dateInfo.quarter - 1
         : 0;
 
-      if (aggregated[rKey]) {
-        aggregated[rKey].quarterRealisasi[qIdx] += val;
-        aggregated[rKey].totalRealisasi += val;
+      // Cari target key yang cocok: primary check atau fallback
+      let matchedKey = aggregated[rKey] ? rKey : '';
+      if (!matchedKey) {
+        if (level === 'sub_kegiatan') {
+          const fallback = `${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+          if (subKegBelanjaMap[fallback] && aggregated[subKegBelanjaMap[fallback]]) {
+            matchedKey = subKegBelanjaMap[fallback];
+          }
+        } else if (level === 'kegiatan') {
+          const fallback = clean(r.kode_kegiatan);
+          if (kegiatanMap[fallback] && aggregated[kegiatanMap[fallback]]) {
+            matchedKey = kegiatanMap[fallback];
+          }
+        } else if (level === 'program') {
+          const fallback = clean(r.kode_program);
+          if (programMap[fallback] && aggregated[programMap[fallback]]) {
+            matchedKey = programMap[fallback];
+          }
+        } else if (level === 'bidang') {
+          const bName = getBidangFromRealization(r, masterData);
+          if (bidangMap[bName] && aggregated[bidangMap[bName]]) {
+            matchedKey = bidangMap[bName];
+          }
+        }
+      }
+
+      if (matchedKey && aggregated[matchedKey]) {
+        aggregated[matchedKey].quarterRealisasi[qIdx] += val;
+        aggregated[matchedKey].totalRealisasi += val;
       } else {
         if (!unmatchedRealizations[rKey]) {
           let name = '';
@@ -316,22 +380,43 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
         return false;
       }
 
-      const rBidang = getBidangFromRealization(r, masterData);
-      const rKeyBidang = `bidang|${rBidang}`;
-      const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
-      const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
-      const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
-
       let targetKey = detailModal.key;
       if (targetKey.startsWith('unmapped|')) {
         targetKey = targetKey.replace('unmapped|', '');
-        return rKeySub === targetKey;
       }
 
-      if (detailModal.level === 'bidang') return rKeyBidang === targetKey;
-      if (detailModal.level === 'program') return rKeyProgram === targetKey;
-      if (detailModal.level === 'kegiatan') return rKeyKegiatan === targetKey;
-      return rKeySub === targetKey;
+      if (detailModal.level === 'bidang') {
+        const rBidang = getBidangFromRealization(r, masterData);
+        return `bidang|${rBidang}` === targetKey || `bidang|${getBidangName(r.program || '')}` === targetKey;
+      }
+
+      if (detailModal.level === 'program') {
+        const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
+        const targetProgramCode = targetKey.split('|').pop();
+        return rKeyProgram === targetKey || (targetProgramCode ? clean(r.kode_program) === clean(targetProgramCode) : false);
+      }
+
+      if (detailModal.level === 'kegiatan') {
+        const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
+        const targetKegCode = targetKey.split('|').pop();
+        return rKeyKegiatan === targetKey || (targetKegCode ? clean(r.kode_kegiatan) === clean(targetKegCode) : false);
+      }
+
+      // sub_kegiatan
+      const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+      if (rKeySub === targetKey) return true;
+
+      // Fallback matching by kode_sub_kegiatan + kode_belanja
+      const parts = targetKey.split('|');
+      if (parts.length >= 2) {
+        const targetBelanjaCode = parts[parts.length - 1];
+        const targetSubKegCode = parts[parts.length - 2];
+        if (clean(r.kode_sub_kegiatan) === clean(targetSubKegCode) && clean(r.kode_belanja) === clean(targetBelanjaCode)) {
+          return true;
+        }
+      }
+
+      return false;
     });
   }, [detailModal, realizationData, selectedYear, masterData]);
 
@@ -455,7 +540,7 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-x-auto overflow-y-auto max-h-[72vh] relative print:max-h-none print:overflow-visible print:shadow-none print:border-none">
         {/* Printable Header */}
         <div className="hidden print:block mb-6 text-center">
           <h1 className="text-2xl font-black uppercase tracking-tight">Laporan Realisasi Keuangan Per Triwulan</h1>
@@ -472,27 +557,27 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
           </div>
         </div>
 
-        <table className="w-full text-left min-w-[1250px] print:min-w-0 print:text-[8px] border-collapse">
-          <thead className="bg-gray-50/75 border-b">
+        <table className="w-full text-left min-w-[1300px] print:min-w-0 print:text-[8px] border-collapse">
+          <thead className="bg-gray-50/95 backdrop-blur-xs border-b border-gray-200 sticky top-0 z-20 shadow-xs">
             <tr>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest sticky left-0 bg-gray-50 z-10">SKPD</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 left-0 bg-gray-100 z-30 shadow-xs">SKPD</th>
               {level === 'sub_kegiatan' && (
-                <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode SubKeg</th>
+                <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20">Kode SubKeg</th>
               )}
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[220px]">Uraian / Kode</th>
-              <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Pagu Anggaran</th>
-              <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Pagu SPD</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[220px] sticky top-0 bg-gray-50 z-20">Uraian / Kode</th>
+              <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Pagu Anggaran</th>
+              <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Pagu SPD</th>
               
-              {QUARTER_SHORT.map((qLabel, qIdx) => (
-                <th key={qLabel} className="px-3.5 py-4 text-[10px] font-black text-indigo-700 uppercase tracking-widest text-right bg-indigo-50/30">
+              {QUARTER_SHORT.map((qLabel) => (
+                <th key={qLabel} className="px-3.5 py-4 text-[10px] font-black text-indigo-700 uppercase tracking-widest text-right bg-indigo-50/70 sticky top-0 z-20">
                   {qLabel}
                 </th>
               ))}
 
-              <th className="px-4 py-4 text-[10px] font-black text-emerald-700 uppercase tracking-widest text-right bg-emerald-50/40">Total Realisasi</th>
-              <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa SPD</th>
-              <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa Anggaran</th>
-              <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">% Capaian</th>
+              <th className="px-4 py-4 text-[10px] font-black text-emerald-700 uppercase tracking-widest text-right bg-emerald-50/80 sticky top-0 z-20">Total Realisasi</th>
+              <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa SPD</th>
+              <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa Anggaran</th>
+              <th className="px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sticky top-0 bg-gray-50 z-20">% Capaian</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -503,8 +588,8 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
               const percent = row.anggaran > 0 ? (row.totalRealisasi / row.anggaran) * 100 : 0;
 
               return (
-                <tr key={idx} className={`hover:bg-gray-50 transition-colors ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/40' : ''}`}>
-                  <td className="px-5 py-3.5 text-xs font-bold text-gray-500 sticky left-0 bg-white group-hover:bg-gray-50">{row.skpd}</td>
+                <tr key={idx} className={`hover:bg-gray-50 transition-colors group ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/40' : ''}`}>
+                  <td className="px-5 py-3.5 text-xs font-bold text-gray-600 sticky left-0 bg-white group-hover:bg-gray-50 z-10 shadow-xs">{row.skpd}</td>
                   {level === 'sub_kegiatan' && (
                     <td className="px-4 py-3.5 text-[10px] font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
                   )}
@@ -571,21 +656,21 @@ export const QuarterlyReport: React.FC<Props> = ({ masterData, realizationData }
             )}
 
             {/* Total Footer Row */}
-            <tr className="bg-gray-900 text-white font-black print:bg-gray-200 print:text-black">
-              <td className="px-5 py-4 text-xs uppercase tracking-wider sticky left-0 bg-gray-900 print:bg-gray-200" colSpan={level === 'sub_kegiatan' ? 3 : 2}>
+            <tr className="bg-gray-900 text-white font-black sticky bottom-0 z-20 shadow-md print:bg-gray-200 print:text-black">
+              <td className="px-5 py-4 text-xs uppercase tracking-wider sticky bottom-0 left-0 bg-gray-900 z-30 shadow-md print:bg-gray-200" colSpan={level === 'sub_kegiatan' ? 3 : 2}>
                 Total Seluruhnya
               </td>
-              <td className="px-4 py-4 text-xs text-right">{formatIDR(totals.anggaran)}</td>
-              <td className="px-4 py-4 text-xs text-right text-blue-300 print:text-black">{formatIDR(totals.pagu_spd)}</td>
+              <td className="px-4 py-4 text-xs text-right sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran)}</td>
+              <td className="px-4 py-4 text-xs text-right text-blue-300 print:text-black sticky bottom-0 bg-gray-900">{formatIDR(totals.pagu_spd)}</td>
               {totals.quarterRealisasi.map((sumVal, qIdx) => (
-                <td key={qIdx} className="px-3.5 py-4 text-xs text-right text-indigo-300 print:text-black font-mono">
+                <td key={qIdx} className="px-3.5 py-4 text-xs text-right text-indigo-300 print:text-black font-mono sticky bottom-0 bg-gray-900">
                   {sumVal > 0 ? formatIDR(sumVal) : '-'}
                 </td>
               ))}
-              <td className="px-4 py-4 text-xs text-right text-emerald-300 print:text-black">{formatIDR(totals.totalRealisasi)}</td>
-              <td className="px-4 py-4 text-xs text-right text-amber-300 print:text-black">{formatIDR(totals.pagu_spd - totals.totalRealisasi)}</td>
-              <td className="px-4 py-4 text-xs text-right text-red-300 print:text-black">{formatIDR(totals.anggaran - totals.totalRealisasi)}</td>
-              <td className="px-4 py-4 text-center text-xs">
+              <td className="px-4 py-4 text-xs text-right text-emerald-300 print:text-black sticky bottom-0 bg-gray-900">{formatIDR(totals.totalRealisasi)}</td>
+              <td className="px-4 py-4 text-xs text-right text-amber-300 print:text-black sticky bottom-0 bg-gray-900">{formatIDR(totals.pagu_spd - totals.totalRealisasi)}</td>
+              <td className="px-4 py-4 text-xs text-right text-red-300 print:text-black sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran - totals.totalRealisasi)}</td>
+              <td className="px-4 py-4 text-center text-xs sticky bottom-0 bg-gray-900">
                 {totals.anggaran > 0 ? ((totals.totalRealisasi / totals.anggaran) * 100).toFixed(1) : 0}%
               </td>
             </tr>

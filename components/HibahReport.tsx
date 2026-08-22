@@ -799,7 +799,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
       </div>
 
       {/* Main Hibah Data Table */}
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-x-auto overflow-y-auto max-h-[72vh] relative print:max-h-none print:overflow-visible print:shadow-none print:border-none">
         {/* Printable Header */}
         <div className="hidden print:block mb-6 text-center">
           <h1 className="text-2xl font-black uppercase tracking-tight">Laporan Realisasi Dana Hibah</h1>
@@ -819,21 +819,21 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
           </div>
         </div>
 
-        <table className="w-full text-left min-w-[1450px] print:min-w-0 print:text-[8px]">
-          <thead className="bg-gray-50/70 border-b">
+        <table className="w-full text-left min-w-[1500px] print:min-w-0 print:text-[8px] border-collapse">
+          <thead className="bg-gray-50/95 backdrop-blur-xs border-b border-gray-200 sticky top-0 z-20 shadow-xs">
             <tr>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">No</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Kode Rekening</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Uraian Rekening / Belanja</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Penerima Hibah</th>
-              <th className="px-5 py-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black min-w-[220px]">Preview Keterangan Belanja (SP2D)</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sub Kegiatan</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Anggaran</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">SPD</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Realisasi</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sisa SPD</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sisa Anggaran</th>
-              <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">%</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 left-0 bg-gray-100 z-30 shadow-xs print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">No</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Kode Rekening</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Uraian Rekening / Belanja</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Penerima Hibah</th>
+              <th className="px-5 py-4 text-[10px] font-black text-indigo-700 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black min-w-[220px]">Preview Keterangan Belanja (SP2D)</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sub Kegiatan</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Anggaran</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">SPD</th>
+              <th className="px-5 py-4 text-[10px] font-black text-emerald-700 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Realisasi</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sisa SPD</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sisa Anggaran</th>
+              <th className="px-5 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sticky top-0 bg-gray-50 z-20 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">%</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -850,8 +850,8 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
               );
 
               return (
-                <tr key={row.id || idx} className={`hover:bg-gray-50 transition-colors ${isOverSpd ? 'bg-orange-50/40' : ''}`}>
-                  <td className="px-5 py-4 text-xs font-bold text-gray-400 print:px-1 print:py-1 print:text-[7px]">
+                <tr key={row.id || idx} className={`hover:bg-gray-50 transition-colors group ${isOverSpd ? 'bg-orange-50/40' : ''}`}>
+                  <td className="px-5 py-4 text-xs font-bold text-gray-500 sticky left-0 bg-white group-hover:bg-gray-50 z-10 shadow-xs print:px-1 print:py-1 print:text-[7px]">
                     {idx + 1}
                   </td>
                   
@@ -1009,16 +1009,16 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
 
             {/* Total Row */}
             {filteredData.length > 0 && (
-              <tr className="bg-gray-900 text-white font-black print:bg-gray-100 print:text-black">
-                <td className="px-5 py-5 text-sm uppercase tracking-widest text-[11px] print:px-1 print:py-1.5 print:text-[7.5px]" colSpan={6}>
+              <tr className="bg-gray-900 text-white font-black sticky bottom-0 z-20 shadow-md print:bg-gray-100 print:text-black">
+                <td className="px-5 py-5 text-sm uppercase tracking-widest text-[11px] sticky bottom-0 left-0 bg-gray-900 z-30 shadow-md print:px-1 print:py-1.5 print:text-[7.5px]" colSpan={6}>
                   Total Seluruhnya ({filteredData.length} Item Hibah)
                 </td>
-                <td className="px-5 py-5 text-sm text-right print:px-1 print:py-1.5 print:text-[7.5px]">{formatIDR(totals.anggaran)}</td>
-                <td className="px-5 py-5 text-sm text-right text-blue-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.spd)}</td>
-                <td className="px-5 py-5 text-sm text-right text-emerald-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.realisasi)}</td>
-                <td className="px-5 py-5 text-sm text-right text-amber-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.sisa_spd)}</td>
-                <td className="px-5 py-5 text-sm text-right text-red-300 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.sisa_realisasi)}</td>
-                <td className="px-5 py-5 text-center print:px-1 print:py-1.5">
+                <td className="px-5 py-5 text-sm text-right sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5 print:text-[7.5px]">{formatIDR(totals.anggaran)}</td>
+                <td className="px-5 py-5 text-sm text-right text-blue-300 sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.spd)}</td>
+                <td className="px-5 py-5 text-sm text-right text-emerald-300 sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.realisasi)}</td>
+                <td className="px-5 py-5 text-sm text-right text-amber-300 sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.sisa_spd)}</td>
+                <td className="px-5 py-5 text-sm text-right text-red-300 sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">{formatIDR(totals.sisa_realisasi)}</td>
+                <td className="px-5 py-5 text-center sticky bottom-0 bg-gray-900 print:px-1 print:py-1.5">
                   <span className="text-lg font-black print:text-[7.5px]">
                     {totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(1) : 0}%
                   </span>

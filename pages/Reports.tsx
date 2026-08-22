@@ -170,11 +170,37 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       isUnmapped?: boolean;
     }> = {};
 
+    // Secondary maps for fallback matching if kode_skpd / kode_program differ slightly in SP2D
+    const subKegBelanjaMap: Record<string, string> = {};
+    const kegiatanMap: Record<string, string> = {};
+    const programMap: Record<string, string> = {};
+    const bidangMap: Record<string, string> = {};
+
+    // Filter codes lookup for robust dropdown filtering (case-insensitive & code-based)
+    const selectedSubKegCodes = new Set<string>();
+    const selectedBelanjaCodes = new Set<string>();
+
+    if (selectedSubKegiatan !== 'all') {
+      masterData.forEach(m => {
+        if (clean(m.sub_kegiatan) === clean(selectedSubKegiatan) && m.kode_sub_kegiatan) {
+          selectedSubKegCodes.add(clean(m.kode_sub_kegiatan));
+        }
+      });
+    }
+
+    if (selectedBelanja !== 'all') {
+      masterData.forEach(m => {
+        if (clean(m.belanja) === clean(selectedBelanja) && m.kode_belanja) {
+          selectedBelanjaCodes.add(clean(m.kode_belanja));
+        }
+      });
+    }
+
     // 1. Iterasi Master Data untuk membangun struktur anggaran di level yang dipilih
     masterData.forEach(m => {
-      // Filter berdasarkan dropdown jika dipilih
-      if (selectedSubKegiatan !== 'all' && m.sub_kegiatan !== selectedSubKegiatan) return;
-      if (selectedBelanja !== 'all' && m.belanja !== selectedBelanja) return;
+      // Filter berdasarkan dropdown jika dipilih (case-insensitive)
+      if (selectedSubKegiatan !== 'all' && clean(m.sub_kegiatan) !== clean(selectedSubKegiatan)) return;
+      if (selectedBelanja !== 'all' && clean(m.belanja) !== clean(selectedBelanja)) return;
 
       let key = '';
       let name = '';
@@ -186,21 +212,25 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         name = getBidangName(m.program);
         key = `bidang|${name}`;
         kode = "BIDANG";
+        bidangMap[name] = key;
       } else if (level === 'program') {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}`;
         name = m.program;
         kode = m.kode_program;
+        programMap[clean(m.kode_program)] = key;
       } else if (level === 'kegiatan') {
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}`;
         name = m.kegiatan;
         kode = m.kode_kegiatan;
         parentName = m.program;
+        kegiatanMap[clean(m.kode_kegiatan)] = key;
       } else {
         // Level Sub Kegiatan / Rincian Belanja
         key = `${clean(m.kode_skpd)}|${clean(m.kode_program)}|${clean(m.kode_kegiatan)}|${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`;
         name = m.belanja;
         kode = m.kode_belanja;
         parentName = m.sub_kegiatan;
+        subKegBelanjaMap[`${clean(m.kode_sub_kegiatan)}|${clean(m.kode_belanja)}`] = key;
       }
 
       if (!aggregated[key]) {
@@ -223,7 +253,6 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
     });
 
     // 2. Iterasi Realization Data untuk mencocokkan realisasi pada level yang dipilih
-    // Kita melacak realisasi yang tidak terpetakan untuk ditayangkan sebagai anomali
     const unmatchedRealizations: Record<string, {
       key: string;
       name: string;
@@ -238,9 +267,17 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
     }> = {};
 
     realizationData.forEach(r => {
-      // Filter berdasarkan dropdown jika dipilih
-      if (selectedSubKegiatan !== 'all' && r.sub_kegiatan !== selectedSubKegiatan) return;
-      if (selectedBelanja !== 'all' && r.belanja !== selectedBelanja) return;
+      // Filter berdasarkan dropdown jika dipilih (support nama case-insensitive dan kode)
+      if (selectedSubKegiatan !== 'all') {
+        const matchSub = clean(r.sub_kegiatan) === clean(selectedSubKegiatan) || 
+                         (r.kode_sub_kegiatan && selectedSubKegCodes.has(clean(r.kode_sub_kegiatan)));
+        if (!matchSub) return;
+      }
+      if (selectedBelanja !== 'all') {
+        const matchBel = clean(r.belanja) === clean(selectedBelanja) || 
+                         (r.kode_belanja && selectedBelanjaCodes.has(clean(r.kode_belanja)));
+        if (!matchBel) return;
+      }
 
       // Filter berdasarkan Periode Tanggal
       if (startDate || endDate) {
@@ -264,9 +301,35 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
 
       const value = Number(r.realisasi) || 0;
 
-      if (aggregated[rKey]) {
+      // Cari target key yang cocok: primary check atau fallback
+      let matchedKey = aggregated[rKey] ? rKey : '';
+      if (!matchedKey) {
+        if (level === 'sub_kegiatan') {
+          const fallback = `${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+          if (subKegBelanjaMap[fallback] && aggregated[subKegBelanjaMap[fallback]]) {
+            matchedKey = subKegBelanjaMap[fallback];
+          }
+        } else if (level === 'kegiatan') {
+          const fallback = clean(r.kode_kegiatan);
+          if (kegiatanMap[fallback] && aggregated[kegiatanMap[fallback]]) {
+            matchedKey = kegiatanMap[fallback];
+          }
+        } else if (level === 'program') {
+          const fallback = clean(r.kode_program);
+          if (programMap[fallback] && aggregated[programMap[fallback]]) {
+            matchedKey = programMap[fallback];
+          }
+        } else if (level === 'bidang') {
+          const bName = getBidangFromRealization(r);
+          if (bidangMap[bName] && aggregated[bidangMap[bName]]) {
+            matchedKey = bidangMap[bName];
+          }
+        }
+      }
+
+      if (matchedKey && aggregated[matchedKey]) {
         // Terpetakan sempurna di master pada level saat ini!
-        aggregated[rKey].realisasi += value;
+        aggregated[matchedKey].realisasi += value;
       } else {
         // Tidak ditemukan di master pada level saat ini (Anomali)
         if (!unmatchedRealizations[rKey]) {
@@ -389,22 +452,43 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         if (endDate && r.tanggal > endDate) return false;
       }
 
-      const rBidang = getBidangFromRealization(r);
-      const rKeyBidang = `bidang|${rBidang}`;
-      const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
-      const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
-      const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
-      
       let targetKey = detailView.key;
       if (targetKey.startsWith('unmapped|')) {
         targetKey = targetKey.replace('unmapped|', '');
-        return rKeySub === targetKey;
       }
 
-      if (detailView.level === 'bidang') return rKeyBidang === targetKey;
-      if (detailView.level === 'program') return rKeyProgram === targetKey;
-      if (detailView.level === 'kegiatan') return rKeyKegiatan === targetKey;
-      return rKeySub === targetKey;
+      if (detailView.level === 'bidang') {
+        const rBidang = getBidangFromRealization(r);
+        return `bidang|${rBidang}` === targetKey || `bidang|${getBidangName(r.program || '')}` === targetKey;
+      }
+
+      if (detailView.level === 'program') {
+        const rKeyProgram = `${clean(r.kode_skpd)}|${clean(r.kode_program)}`;
+        const targetProgramCode = targetKey.split('|').pop();
+        return rKeyProgram === targetKey || (targetProgramCode ? clean(r.kode_program) === clean(targetProgramCode) : false);
+      }
+
+      if (detailView.level === 'kegiatan') {
+        const rKeyKegiatan = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}`;
+        const targetKegCode = targetKey.split('|').pop();
+        return rKeyKegiatan === targetKey || (targetKegCode ? clean(r.kode_kegiatan) === clean(targetKegCode) : false);
+      }
+
+      // sub_kegiatan
+      const rKeySub = `${clean(r.kode_skpd)}|${clean(r.kode_program)}|${clean(r.kode_kegiatan)}|${clean(r.kode_sub_kegiatan)}|${clean(r.kode_belanja)}`;
+      if (rKeySub === targetKey) return true;
+
+      // Fallback matching by kode_sub_kegiatan + kode_belanja
+      const parts = targetKey.split('|');
+      if (parts.length >= 2) {
+        const targetBelanjaCode = parts[parts.length - 1];
+        const targetSubKegCode = parts[parts.length - 2];
+        if (clean(r.kode_sub_kegiatan) === clean(targetSubKegCode) && clean(r.kode_belanja) === clean(targetBelanjaCode)) {
+          return true;
+        }
+      }
+
+      return false;
     });
   }, [detailView, realizationData, startDate, endDate]);
 
@@ -753,7 +837,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       )}
 
       {reportType === 'apbd' && (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden overflow-x-auto print:shadow-none print:border-none print:overflow-visible">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-x-auto overflow-y-auto max-h-[72vh] relative print:max-h-none print:overflow-visible print:shadow-none print:border-none">
           <div className="hidden print:block mb-6 text-center">
             <h1 className="text-2xl font-black uppercase tracking-tight">Laporan Realisasi Keuangan</h1>
             <p className="text-sm text-gray-500 mt-1">Level Laporan: {level.replace('_', ' ').toUpperCase()}</p>
@@ -770,20 +854,20 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
               </div>
             </div>
           </div>
-          <table className="w-full text-left min-w-[1200px] print:min-w-0 print:text-[10px]">
-            <thead className="bg-gray-50/50 border-b">
+          <table className="w-full text-left min-w-[1250px] print:min-w-0 print:text-[10px] border-collapse">
+            <thead className="bg-gray-50/95 backdrop-blur-xs border-b border-gray-200 sticky top-0 z-20 shadow-xs">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">SKPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 left-0 bg-gray-100 z-30 shadow-xs">SKPD</th>
                 {level === 'sub_kegiatan' && (
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode SubKeg</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20">Kode SubKeg</th>
                 )}
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Uraian / Kode</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">SPD</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Realisasi</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa SPD</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa Anggaran</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">%</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 min-w-[220px]">Uraian / Kode</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Anggaran</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">SPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Realisasi</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa SPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa Anggaran</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sticky top-0 bg-gray-50 z-20">%</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -794,8 +878,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 const percent = row.anggaran > 0 ? (row.realisasi / row.anggaran) * 100 : 0;
                 
                 return (
-                  <tr key={idx} className={`hover:bg-gray-50 transition-colors ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/50' : ''}`}>
-                    <td className="px-6 py-4 text-xs font-bold text-gray-500">{row.skpd}</td>
+                  <tr key={idx} className={`hover:bg-gray-50 transition-colors group ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/50' : ''}`}>
+                    <td className="px-6 py-4 text-xs font-bold text-gray-600 sticky left-0 bg-white group-hover:bg-gray-50 z-10 shadow-xs">{row.skpd}</td>
                     {level === 'sub_kegiatan' && (
                       <td className="px-6 py-4 text-[10px] font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
                     )}
@@ -840,14 +924,14 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
               })}
               
               {/* Table Footer / Total */}
-              <tr className="bg-gray-900 text-white font-black">
-                <td className="px-6 py-5 text-sm uppercase tracking-widest" colSpan={level === 'sub_kegiatan' ? 3 : 2}>Total Seluruhnya</td>
-                <td className="px-6 py-5 text-sm text-right">{formatIDR(totals.anggaran)}</td>
-                <td className="px-6 py-5 text-sm text-right text-blue-300">{formatIDR(totals.spd)}</td>
-                <td className="px-6 py-5 text-sm text-right text-emerald-300">{formatIDR(totals.realisasi)}</td>
-                <td className="px-6 py-5 text-sm text-right text-amber-300">{formatIDR(totals.spd - totals.realisasi)}</td>
-                <td className="px-6 py-5 text-sm text-right text-red-300">{formatIDR(totals.anggaran - totals.realisasi)}</td>
-                <td className="px-6 py-5 text-center">
+              <tr className="bg-gray-900 text-white font-black sticky bottom-0 z-20 shadow-md">
+                <td className="px-6 py-5 text-sm uppercase tracking-widest sticky bottom-0 left-0 bg-gray-900 z-30 shadow-md" colSpan={level === 'sub_kegiatan' ? 3 : 2}>Total Seluruhnya</td>
+                <td className="px-6 py-5 text-sm text-right sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran)}</td>
+                <td className="px-6 py-5 text-sm text-right text-blue-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.spd)}</td>
+                <td className="px-6 py-5 text-sm text-right text-emerald-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.realisasi)}</td>
+                <td className="px-6 py-5 text-sm text-right text-amber-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.spd - totals.realisasi)}</td>
+                <td className="px-6 py-5 text-sm text-right text-red-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran - totals.realisasi)}</td>
+                <td className="px-6 py-5 text-center sticky bottom-0 bg-gray-900">
                   <span className="text-xl font-black">
                     {totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(1) : 0}%
                   </span>
