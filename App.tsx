@@ -663,12 +663,6 @@ const App: React.FC = () => {
               <button onClick={() => setActivePage('realization')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'realization' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
                 <CircleDollarSign size={20} /> {isSidebarOpen && <span>Realisasi</span>}
               </button>
-              <button onClick={() => setActivePage('hibah')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'hibah' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
-                <Gift size={20} /> {isSidebarOpen && <span>Hibah</span>}
-              </button>
-              <button onClick={() => setActivePage('spending')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'spending' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
-                <CreditCard size={20} /> {isSidebarOpen && <span>Data Belanja</span>}
-              </button>
               <button onClick={() => setActivePage('reports')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'reports' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
                 <FileText size={20} /> {isSidebarOpen && <span>Laporan</span>}
               </button>
@@ -697,7 +691,13 @@ const App: React.FC = () => {
         {/* Main Content */}
         <main className={`flex-1 transition-all duration-300 print:ml-0 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
           <header className="bg-white border-b sticky top-0 z-40 p-4 flex items-center justify-between shadow-sm print:hidden">
-            <h2 className="text-lg font-bold text-gray-700 capitalize">{activePage}</h2>
+            <h2 className="text-lg font-bold text-gray-700">
+              {activePage === 'dashboard' && 'Dashboard'}
+              {activePage === 'master' && 'Data Master'}
+              {activePage === 'realization' && 'Data Realisasi'}
+              {activePage === 'reports' && 'Laporan'}
+              {activePage === 'spreadsheet' && 'Koneksi Spreadsheet'}
+            </h2>
             <div className="flex items-center gap-4">
                <div className="text-right hidden md:block">
                  <p className="text-xs font-bold text-gray-900">{user?.displayName || user?.email}</p>
@@ -713,8 +713,6 @@ const App: React.FC = () => {
             {activePage === 'dashboard' && <Dashboard masterData={masterData} realizationData={realizationData} spendingData={spendingData} />}
             {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} replaceData={replaceMasterData} deleteRow={deleteMasterData} clearAll={clearMasterData} />}
             {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} replaceData={replaceRealizationData} deleteRow={deleteRealizationData} clearAll={clearRealizationData} masterData={masterData} />}
-            {activePage === 'hibah' && <HibahDataPage data={hibahData} setData={updateHibahData} replaceData={replaceHibahData} deleteRow={deleteHibahData} clearAll={clearHibahData} masterData={masterData} />}
-            {activePage === 'spending' && <ExpenditureDataPage data={spendingData} setData={updateSpendingData} />}
             {activePage === 'reports' && <ReportsPage masterData={masterData} realizationData={realizationData} hibahData={hibahData} />}
             {activePage === 'spreadsheet' && (
               <SpreadsheetSettings

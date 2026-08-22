@@ -65,4 +65,4 @@ export interface HibahData {
   createdAt?: any;
 }
 
-export type Page = 'dashboard' | 'master' | 'spending' | 'reports' | 'realization' | 'hibah' | 'spreadsheet';
+export type Page = 'dashboard' | 'master' | 'realization' | 'reports' | 'spreadsheet';

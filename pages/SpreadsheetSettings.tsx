@@ -81,7 +81,7 @@ const SpreadsheetSettings: React.FC<Props> = ({
           </div>
           <h1 className="text-3xl font-black uppercase tracking-tight">Koneksi Spreadsheet</h1>
           <p className="text-emerald-50/90 text-sm leading-relaxed font-medium">
-            Jadikan Google Spreadsheet sebagai database utama atau pencadangan real-time Anda. Anda dapat mengimpor atau mengekspor seluruh data kegiatan, realisasi, belanja, dan data hibah langsung dari satu file spreadsheet terpusat.
+            Jadikan Google Spreadsheet sebagai database utama atau pencadangan real-time Anda. Anda dapat mengimpor atau mengekspor seluruh data master DPA/APBD dan data realisasi SP2D langsung dari satu file spreadsheet terpusat.
           </p>
         </div>
       </div>
@@ -338,21 +338,13 @@ const SpreadsheetSettings: React.FC<Props> = ({
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Statistik Data Utama</h2>
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-indigo-50/50 rounded-xl text-center">
-                <span className="block font-black text-indigo-600 text-lg">{masterCount}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Data Master</span>
+              <div className="p-4 bg-indigo-50/70 rounded-xl text-center border border-indigo-100">
+                <span className="block font-black text-indigo-600 text-2xl">{masterCount}</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Data Master APBD</span>
               </div>
-              <div className="p-3 bg-emerald-50/50 rounded-xl text-center">
-                <span className="block font-black text-emerald-600 text-lg">{realizationCount}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Realisasi</span>
-              </div>
-              <div className="p-3 bg-blue-50/50 rounded-xl text-center">
-                <span className="block font-black text-blue-600 text-lg">{spendingCount}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Data Belanja</span>
-              </div>
-              <div className="p-3 bg-amber-50/50 rounded-xl text-center">
-                <span className="block font-black text-amber-600 text-lg">{hibahCount}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Dana Hibah</span>
+              <div className="p-4 bg-emerald-50/70 rounded-xl text-center border border-emerald-100">
+                <span className="block font-black text-emerald-600 text-2xl">{realizationCount}</span>
+                <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Data Realisasi SP2D</span>
               </div>
             </div>
           </div>
