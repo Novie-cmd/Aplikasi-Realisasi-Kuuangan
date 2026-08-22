@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Download, Search, Printer, Gift, Eye, X, List, AlertCircle, AlertTriangle, FileText, CheckCircle2, Copy, Filter, ChevronRight, Layers } from 'lucide-react';
+import { Download, Search, Printer, Gift, Eye, X, AlertCircle, FileText, CheckCircle2, Copy, Filter, Sparkles, Database, Layers } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { MasterData, RealizationData, HibahData } from '../types';
 import SearchableSelect from './SearchableSelect';
@@ -70,11 +70,105 @@ export const TARGET_HIBAH_ACCOUNTS: StandardHibahAccount[] = [
   }
 ];
 
+// Helper normalisasi format kode rekening
+export const normalizeRekening = (kode?: string): string => {
+  if (!kode) return '';
+  return kode.trim().replace(/\s+/g, '').replace(/[^\d.]/g, '');
+};
+
+// Deteksi apakah sebuah akun / uraian tergolong Belanja Hibah
+export const isHibahRekening = (kode?: string, uraian?: string, ket?: string): boolean => {
+  const norm = normalizeRekening(kode || '');
+  const digits = norm.replace(/\./g, '');
+  const text = `${uraian || ''} ${ket || ''}`.toLowerCase();
+
+  if (norm.startsWith('5.1.05') || norm.startsWith('5.1.5.') || digits.startsWith('5105') || digits.startsWith('515')) {
+    return true;
+  }
+  if (norm.includes('5.1.02.01.001.00040') || norm.includes('5.1.02.01.01.0040') || digits.includes('51020100100040') || digits.includes('510201010040')) {
+    return true;
+  }
+  if (text.includes('hibah') || text.includes('dana hibah')) {
+    return true;
+  }
+  return false;
+};
+
+// Petakan kode rekening ke salah satu dari 5 target canonical jika cocok
+export const getCanonicalHibahCode = (kode?: string, uraian?: string): string => {
+  const norm = normalizeRekening(kode || '');
+  const digits = norm.replace(/\./g, '');
+  const text = `${uraian || ''}`.toLowerCase();
+
+  if (norm.includes('5.1.05.01.001.00001') || norm.includes('5.1.05.01.01') || digits.startsWith('510501') || text.includes('pemerintah pusat') || text.includes('pemerintah daerah')) {
+    return '5.1.05.01.001.00001';
+  }
+  if (norm.includes('5.1.05.07.001.00001') || norm.includes('5.1.05.07.01') || digits.startsWith('510507')) {
+    return '5.1.05.07.001.00001';
+  }
+  if (norm.includes('5.1.05.05.003.00001') || norm.includes('5.1.05.05.03') || digits.includes('510505003') || digits.includes('51050503') || text.includes('kemasyarakatan') || text.includes('ormas')) {
+    return '5.1.05.05.003.00001';
+  }
+  if (norm.includes('5.1.05.05.001.00001') || norm.includes('5.1.05.05.01') || digits.startsWith('510505') || (text.includes('badan') && text.includes('lembaga'))) {
+    return '5.1.05.05.001.00001';
+  }
+  if (norm.includes('5.1.02.01.001.00040') || norm.includes('5.1.02.01.01.0040') || digits.includes('51020100100040') || digits.includes('510201010040') || text.includes('diserahkan kepada masyarakat') || text.includes('pihak ketiga')) {
+    return '5.1.02.01.001.00040';
+  }
+  return kode || '5.1.05.01.001.00001';
+};
+
+// Cek apakah 2 kode rekening cocok (memperhitungkan variasi titik/digit)
+export const isMatchingAccount = (codeA?: string, codeB?: string): boolean => {
+  if (!codeA || !codeB) return false;
+  const aClean = clean(codeA);
+  const bClean = clean(codeB);
+  if (aClean === bClean) return true;
+
+  const aDigits = normalizeRekening(codeA).replace(/\./g, '');
+  const bDigits = normalizeRekening(codeB).replace(/\./g, '');
+  if (aDigits && bDigits && aDigits === bDigits) return true;
+
+  // Cek kesamaan kelompok akun
+  if (aDigits.startsWith('510501') && bDigits.startsWith('510501')) return true;
+  if (aDigits.startsWith('510507') && bDigits.startsWith('510507')) return true;
+  if ((aDigits.startsWith('510505003') || aDigits.startsWith('51050503')) && (bDigits.startsWith('510505003') || bDigits.startsWith('51050503'))) return true;
+  if ((aDigits.startsWith('510505001') || aDigits.startsWith('51050501') || aDigits.startsWith('510505')) && 
+      (bDigits.startsWith('510505001') || bDigits.startsWith('51050501') || bDigits.startsWith('510505'))) return true;
+  if ((aDigits.includes('51020100100040') || aDigits.includes('510201010040') || (aDigits.startsWith('510201') && aDigits.endsWith('40'))) && 
+      (bDigits.includes('51020100100040') || bDigits.includes('510201010040') || (bDigits.startsWith('510201') && bDigits.endsWith('40')))) return true;
+
+  return false;
+};
+
+// Ekstrak nama calon penerima hibah dari teks uraian atau keterangan transaksi
+export const extractPenerimaName = (uraian?: string, keterangan?: string): string => {
+  const text = `${keterangan || ''} ${uraian || ''}`.trim();
+  if (!text) return '-';
+
+  const matchKepada = text.match(/(?:kepada|untuk|bagi|an\.|a\.n\.|penerima)\s+([A-Za-z0-9\s.,/\-&'()]+?)(?:\s*(?:tahap|termin|tahun|anggaran|periode|berdasarkan|sp2d|nphd|nomor|no\.|\d{4}|$))/i);
+  if (matchKepada && matchKepada[1] && matchKepada[1].trim().length > 2) {
+    return matchKepada[1].trim();
+  }
+
+  const cleanedPrefix = (uraian || keterangan || '')
+    .replace(/^Belanja\s+Hibah\s+(?:Uang\s+)?(?:Barang\s+)?(?:kepada\s+)?/i, '')
+    .replace(/^Pencairan\s+(?:Dana\s+)?Hibah\s+/i, '')
+    .trim();
+
+  if (cleanedPrefix && cleanedPrefix.length > 2 && !cleanedPrefix.toLowerCase().startsWith('belanja')) {
+    return cleanedPrefix;
+  }
+
+  return uraian || '-';
+};
+
 export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData = [], masterData = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRekening, setSelectedRekening] = useState<string>('all');
   const [selectedKegiatan, setSelectedKegiatan] = useState<string>('all');
   const [selectedSubKegiatan, setSelectedSubKegiatan] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'auto' | 'manual'>('all');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Modal preview keterangan belanja
@@ -83,7 +177,128 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
     realizations: RealizationData[];
   } | null>(null);
 
-  // Helper untuk mencari data realisasi yang cocok dengan item hibah
+  // --- AUTOMATIC DATA SYNTHESIS & MERGING ---
+  // Menggabungkan data dari masterData (APBD), realizationData (SP2D), dan hibahData secara otomatis
+  const combinedHibahData = useMemo(() => {
+    const result: HibahData[] = [];
+    const processedKeys = new Set<string>();
+
+    // 1. Masukkan data input spesifik dari menu Dana Hibah
+    hibahData.forEach((h, index) => {
+      // Hitung realisasi aktual dari realizationData
+      const matchedReals = realizationData.filter(r => {
+        const isRekMatch = clean(r.kode_belanja || '') === clean(h.kode_rekening || '') || 
+                           isMatchingAccount(r.kode_belanja, h.kode_rekening);
+        const isSubMatch = (h.kode_sub_kegiatan && clean(r.kode_sub_kegiatan) === clean(h.kode_sub_kegiatan)) ||
+                           (h.sub_kegiatan && clean(r.sub_kegiatan) === clean(h.sub_kegiatan));
+        return isRekMatch && (isSubMatch || !h.kode_sub_kegiatan);
+      });
+
+      const calculatedReal = matchedReals.reduce((sum, r) => sum + (r.realisasi || 0), 0);
+      const finalReal = (h.realisasi && h.realisasi > 0) ? h.realisasi : calculatedReal;
+
+      const key = `${clean(h.kode_rekening)}_${clean(h.kode_sub_kegiatan || h.sub_kegiatan)}_${clean(h.penerima_hibah || h.uraian)}`;
+      processedKeys.add(key);
+
+      result.push({
+        ...h,
+        id: h.id || `hibah_manual_${index}`,
+        realisasi: finalReal,
+        sisa_spd: (h.spd || 0) - finalReal,
+        sisa_realisasi: (h.anggaran || 0) - finalReal,
+        isAutoGenerated: false,
+        sourceType: 'manual'
+      });
+    });
+
+    // 2. OTOMATIS: Ekstrak semua baris dari masterData (APBD) yang sesuai kode rekening Hibah / Belanja Hibah
+    masterData.forEach((m, mIndex) => {
+      if (isHibahRekening(m.kode_belanja, m.belanja)) {
+        const canonicalCode = getCanonicalHibahCode(m.kode_belanja, m.belanja);
+        const key = `${clean(m.kode_belanja)}_${clean(m.kode_sub_kegiatan || m.sub_kegiatan)}_${clean(m.belanja)}`;
+
+        // Periksa apakah sudah ada di hibahData manual yang persis sama
+        const alreadyExists = result.some(item => 
+          (clean(item.kode_rekening) === clean(m.kode_belanja) || isMatchingAccount(item.kode_rekening, m.kode_belanja)) &&
+          ((m.kode_sub_kegiatan && clean(item.kode_sub_kegiatan) === clean(m.kode_sub_kegiatan)) ||
+           (m.sub_kegiatan && clean(item.sub_kegiatan) === clean(m.sub_kegiatan)))
+        );
+
+        if (!alreadyExists && !processedKeys.has(key)) {
+          processedKeys.add(key);
+
+          // Cari transaksi realisasi SP2D yang cocok
+          const matchedReals = realizationData.filter(r => {
+            const isRekMatch = clean(r.kode_belanja || '') === clean(m.kode_belanja || '') ||
+                               isMatchingAccount(r.kode_belanja, m.kode_belanja) ||
+                               clean(r.kode_belanja || '') === clean(canonicalCode);
+            const isSubMatch = (m.kode_sub_kegiatan && clean(r.kode_sub_kegiatan) === clean(m.kode_sub_kegiatan)) ||
+                               (m.sub_kegiatan && clean(r.sub_kegiatan) === clean(m.sub_kegiatan));
+            return isRekMatch && (isSubMatch || !m.kode_sub_kegiatan);
+          });
+
+          const calculatedReal = matchedReals.reduce((sum, r) => sum + (r.realisasi || 0), 0);
+          const finalReal = m.realisasi && m.realisasi > 0 ? m.realisasi : calculatedReal;
+          const extractedPenerima = extractPenerimaName(m.belanja, matchedReals[0]?.keterangan_dokumen);
+
+          result.push({
+            id: `auto_master_${m.id || mIndex}`,
+            kegiatan: m.kegiatan || '',
+            kode_kegiatan: m.kode_kegiatan || '',
+            sub_kegiatan: m.sub_kegiatan || '',
+            kode_sub_kegiatan: m.kode_sub_kegiatan || '',
+            kode_rekening: m.kode_belanja || canonicalCode,
+            uraian: m.belanja || '',
+            penerima_hibah: extractedPenerima,
+            anggaran: m.anggaran || 0,
+            spd: m.pagu_spd || 0,
+            realisasi: finalReal,
+            sisa_spd: (m.pagu_spd || 0) - finalReal,
+            sisa_realisasi: (m.anggaran || 0) - finalReal,
+            isAutoGenerated: true,
+            sourceType: 'auto_apbd'
+          });
+        }
+      }
+    });
+
+    // 3. OTOMATIS: Ekstrak dari realizationData (SP2D) jika ada transaksi hibah yang belum tercakup di master/hibah
+    realizationData.forEach((r, rIndex) => {
+      if (isHibahRekening(r.kode_belanja, '', r.keterangan_dokumen)) {
+        const canonicalCode = getCanonicalHibahCode(r.kode_belanja, r.keterangan_dokumen);
+        
+        const alreadyCovered = result.some(item => 
+          (clean(item.kode_rekening) === clean(r.kode_belanja) || isMatchingAccount(item.kode_rekening, r.kode_belanja)) &&
+          ((r.kode_sub_kegiatan && clean(item.kode_sub_kegiatan) === clean(r.kode_sub_kegiatan)) ||
+           (r.sub_kegiatan && clean(item.sub_kegiatan) === clean(r.sub_kegiatan)))
+        );
+
+        if (!alreadyCovered) {
+          result.push({
+            id: `auto_real_${r.id || rIndex}`,
+            kegiatan: r.kegiatan || 'Realisasi Belanja Hibah',
+            kode_kegiatan: r.kode_kegiatan || '',
+            sub_kegiatan: r.sub_kegiatan || 'Sub Kegiatan Hibah',
+            kode_sub_kegiatan: r.kode_sub_kegiatan || '',
+            kode_rekening: r.kode_belanja || canonicalCode,
+            uraian: r.keterangan_dokumen || 'Realisasi Belanja Hibah SP2D',
+            penerima_hibah: extractPenerimaName('', r.keterangan_dokumen),
+            anggaran: 0,
+            spd: 0,
+            realisasi: r.realisasi || 0,
+            sisa_spd: -(r.realisasi || 0),
+            sisa_realisasi: -(r.realisasi || 0),
+            isAutoGenerated: true,
+            sourceType: 'auto_sp2d'
+          });
+        }
+      }
+    });
+
+    return result;
+  }, [hibahData, masterData, realizationData]);
+
+  // Helper untuk mencari data realisasi SP2D yang cocok dengan item hibah
   const findMatchingRealizations = (hibahItem: HibahData): RealizationData[] => {
     const itemRekening = clean(hibahItem.kode_rekening || '');
     const itemSub = clean(hibahItem.sub_kegiatan || '');
@@ -98,17 +313,16 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
       const rKet = clean(r.keterangan_dokumen || '');
 
       // 1. Rekening cocok dan Sub Kegiatan cocok
-      if (itemRekening && rBelanja === itemRekening) {
+      if (itemRekening && (rBelanja === itemRekening || isMatchingAccount(r.kode_belanja, hibahItem.kode_rekening))) {
         if (itemKodeSub && rKodeSub && itemKodeSub === rKodeSub) return true;
         if (itemSub && rSub && itemSub === rSub) return true;
-        // Jika tidak ada kode sub kegiatan spesifik, periksa apakah nama penerima atau uraian ada di keterangan
-        if (itemPenerima && rKet.includes(itemPenerima)) return true;
+        if (itemPenerima && itemPenerima !== '-' && rKet.includes(itemPenerima)) return true;
         if (itemUraian && rKet.includes(itemUraian)) return true;
         return true;
       }
 
-      // 2. Cocok berdasarkan pencarian teks penerima di keterangan belanja
-      if (itemPenerima && itemPenerima.length > 3 && rKet.includes(itemPenerima)) {
+      // 2. Cocok berdasarkan pencarian nama penerima di keterangan belanja
+      if (itemPenerima && itemPenerima.length > 3 && itemPenerima !== '-' && rKet.includes(itemPenerima)) {
         return true;
       }
 
@@ -116,23 +330,21 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
     });
   };
 
-  // Kumpulan unik daftar kegiatan & sub kegiatan & kode rekening
+  // Kumpulan unik daftar kegiatan, sub kegiatan & kode rekening
   const kegiatanList = useMemo(() => {
-    return Array.from(new Set(hibahData.map(h => h.kegiatan).filter(Boolean))).sort();
-  }, [hibahData]);
+    return Array.from(new Set(combinedHibahData.map(h => h.kegiatan).filter(Boolean))).sort();
+  }, [combinedHibahData]);
 
   const subKegiatanList = useMemo(() => {
-    return Array.from(new Set(hibahData.map(h => h.sub_kegiatan).filter(Boolean))).sort();
-  }, [hibahData]);
+    return Array.from(new Set(combinedHibahData.map(h => h.sub_kegiatan).filter(Boolean))).sort();
+  }, [combinedHibahData]);
 
   const allRekeningList = useMemo(() => {
     const map = new Map<string, string>();
-    // Tambahkan 5 target accounts dulu
     TARGET_HIBAH_ACCOUNTS.forEach(t => {
       map.set(t.kode, `${t.kode} - ${t.short}`);
     });
-    // Tambahkan dari hibahData jika ada
-    hibahData.forEach(h => {
+    combinedHibahData.forEach(h => {
       if (h.kode_rekening && !map.has(h.kode_rekening)) {
         map.set(h.kode_rekening, `${h.kode_rekening} ${h.uraian ? `(${h.uraian})` : ''}`);
       }
@@ -141,20 +353,26 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
       value: kode,
       label
     }));
-  }, [hibahData]);
+  }, [combinedHibahData]);
 
   // Rekapitulasi per Kode Rekening Target
   const accountSummaries = useMemo(() => {
     return TARGET_HIBAH_ACCOUNTS.map(acc => {
-      const matchingItems = hibahData.filter(h => clean(h.kode_rekening || '') === clean(acc.kode));
+      const matchingItems = combinedHibahData.filter(h => {
+        const c = clean(h.kode_rekening || '');
+        const targetC = clean(acc.kode);
+        return c === targetC || isMatchingAccount(h.kode_rekening, acc.kode);
+      });
+
       const totalAnggaran = matchingItems.reduce((sum, item) => sum + (item.anggaran || 0), 0);
       const totalSpd = matchingItems.reduce((sum, item) => sum + (item.spd || 0), 0);
       const totalRealisasi = matchingItems.reduce((sum, item) => sum + (item.realisasi || 0), 0);
       const percent = totalAnggaran > 0 ? (totalRealisasi / totalAnggaran) * 100 : 0;
       
       // Ambil transaksi realisasi terkait
-      const matchedRealizations = realizationData.filter(r => clean(r.kode_belanja || '') === clean(acc.kode));
-      const totalRealizationTrans = matchedRealizations.length;
+      const matchedRealizations = realizationData.filter(r => 
+        clean(r.kode_belanja || '') === clean(acc.kode) || isMatchingAccount(r.kode_belanja, acc.kode)
+      );
 
       return {
         ...acc,
@@ -165,17 +383,23 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
         sisaSpd: totalSpd - totalRealisasi,
         sisaAnggaran: totalAnggaran - totalRealisasi,
         percent,
-        transactionCount: totalRealizationTrans
+        transactionCount: matchedRealizations.length
       };
     });
-  }, [hibahData, realizationData]);
+  }, [combinedHibahData, realizationData]);
 
   // Filter Data Utama
   const filteredData = useMemo(() => {
-    return hibahData.filter(item => {
+    return combinedHibahData.filter(item => {
+      // Filter Sumber Data
+      if (sourceFilter === 'auto' && !item.isAutoGenerated) return false;
+      if (sourceFilter === 'manual' && item.isAutoGenerated) return false;
+
       // Filter Kode Rekening
       if (selectedRekening !== 'all') {
-        if (clean(item.kode_rekening || '') !== clean(selectedRekening)) return false;
+        const isMatch = clean(item.kode_rekening || '') === clean(selectedRekening) || 
+                        isMatchingAccount(item.kode_rekening, selectedRekening);
+        if (!isMatch) return false;
       }
 
       // Filter Kegiatan
@@ -199,7 +423,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
 
       return true;
     });
-  }, [hibahData, selectedRekening, selectedKegiatan, selectedSubKegiatan, searchTerm]);
+  }, [combinedHibahData, selectedRekening, selectedKegiatan, selectedSubKegiatan, sourceFilter, searchTerm]);
 
   // Totals
   const totals = useMemo(() => {
@@ -214,12 +438,12 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
   }, [filteredData]);
 
   const validationAlerts = useMemo(() => {
-    const alerts = hibahData.filter(item => (item.realisasi || 0) > (item.spd || 0));
+    const alerts = combinedHibahData.filter(item => (item.realisasi || 0) > (item.spd || 0));
     return {
       count: alerts.length,
       totalOver: alerts.reduce((acc, curr) => acc + ((curr.realisasi || 0) - (curr.spd || 0)), 0)
     };
-  }, [hibahData]);
+  }, [combinedHibahData]);
 
   const handlePrint = () => {
     window.print();
@@ -248,7 +472,8 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
         'Realisasi': row.realisasi || 0,
         'Sisa SPD': (row.spd || 0) - (row.realisasi || 0),
         'Sisa Anggaran': (row.anggaran || 0) - (row.realisasi || 0),
-        '% Capaian': (row.anggaran || 0) > 0 ? (((row.realisasi || 0) / (row.anggaran || 0)) * 100).toFixed(2) + '%' : '0%'
+        '% Capaian': (row.anggaran || 0) > 0 ? (((row.realisasi || 0) / (row.anggaran || 0)) * 100).toFixed(2) + '%' : '0%',
+        'Sumber Data': row.isAutoGenerated ? 'Otomatis (APBD & SP2D)' : 'Input Manual'
       };
     });
 
@@ -267,7 +492,8 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
       'Realisasi': totals.realisasi,
       'Sisa SPD': totals.sisa_spd,
       'Sisa Anggaran': totals.sisa_realisasi,
-      '% Capaian': totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(2) + '%' : '0%'
+      '% Capaian': totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(2) + '%' : '0%',
+      'Sumber Data': ''
     };
     dataToExport.push(totalRow as any);
 
@@ -283,8 +509,36 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const autoCount = combinedHibahData.filter(h => h.isAutoGenerated).length;
+  const manualCount = combinedHibahData.filter(h => !h.isAutoGenerated).length;
+
   return (
     <div className="space-y-6">
+      {/* Information Banner on Auto Sync */}
+      <div className="bg-linear-to-r from-indigo-50 via-blue-50 to-emerald-50 border border-indigo-100 p-4 rounded-2xl shadow-xs flex flex-wrap items-center justify-between gap-4 print:hidden">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-xs">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-indigo-950 flex items-center gap-2">
+              Laporan Hibah Otomatis Berbasis 5 Kode Rekening APBD & SP2D
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                Sistem Aktif
+              </span>
+            </h4>
+            <p className="text-xs text-indigo-900/80 mt-0.5">
+              Data dikumpulkan secara otomatis dari <b>{masterData.length} baris Master Data APBD</b> dan <b>{realizationData.length} transaksi SP2D</b> yang sesuai dengan 5 Kode Rekening Belanja Hibah.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <span className="bg-white/80 backdrop-blur-xs text-indigo-700 px-3 py-1.5 rounded-xl border border-indigo-100 shadow-2xs flex items-center gap-1.5">
+            <Database size={14} /> Total {combinedHibahData.length} Baris Hibah ({autoCount} Otomatis, {manualCount} Manual)
+          </span>
+        </div>
+      </div>
+
       {/* Top Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -332,10 +586,10 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
           <div>
             <h3 className="text-base font-black text-gray-900 tracking-tight flex items-center gap-2">
               <Gift className="text-indigo-600" size={20} />
-              Rekapitulasi Belanja Hibah Berdasarkan 5 Kode Rekening
+              Rekapitulasi Belanja Hibah Berdasarkan 5 Kode Rekening Target
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Klik salah satu kode rekening di bawah untuk memfilter data dan melihat preview keterangan belanja langsung.
+              Klik salah satu kode rekening di bawah untuk memfilter data dan melihat preview rincian keterangan belanja SP2D.
             </p>
           </div>
           {selectedRekening !== 'all' && (
@@ -394,7 +648,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                     />
                   </div>
                   <div className="flex justify-between items-center text-[10px] text-gray-400 pt-0.5">
-                    <span>{acc.itemCount} Penerima/Item</span>
+                    <span>{acc.itemCount} Item ({acc.transactionCount} SP2D)</span>
                     <span className="font-bold text-gray-700">{acc.percent.toFixed(1)}%</span>
                   </div>
                 </div>
@@ -449,39 +703,63 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
           </div>
         </div>
 
-        {/* Quick Filter Chips for Target Accounts */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar pt-2 border-t border-gray-50">
-          <span className="text-xs font-bold text-gray-400 whitespace-nowrap mr-1">Kode Rekening:</span>
-          <button
-            onClick={() => setSelectedRekening('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              selectedRekening === 'all'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Semua Rekening ({hibahData.length})
-          </button>
-          {TARGET_HIBAH_ACCOUNTS.map(acc => {
-            const count = hibahData.filter(h => clean(h.kode_rekening || '') === clean(acc.kode)).length;
-            return (
-              <button
-                key={acc.kode}
-                onClick={() => setSelectedRekening(acc.kode)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  selectedRekening === acc.kode
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <span className="font-mono text-[11px]">{acc.kode}</span>
-                <span className="text-[10px] opacity-80">({acc.short})</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${selectedRekening === acc.kode ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+        {/* Source & Account Quick Filter Chips */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-50">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <span className="text-xs font-bold text-gray-400 whitespace-nowrap mr-1">Kode Rekening:</span>
+            <button
+              onClick={() => setSelectedRekening('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                selectedRekening === 'all'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Semua Rekening ({combinedHibahData.length})
+            </button>
+            {TARGET_HIBAH_ACCOUNTS.map(acc => {
+              const count = combinedHibahData.filter(h => clean(h.kode_rekening || '') === clean(acc.kode) || isMatchingAccount(h.kode_rekening, acc.kode)).length;
+              return (
+                <button
+                  key={acc.kode}
+                  onClick={() => setSelectedRekening(acc.kode)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    selectedRekening === acc.kode
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="font-mono text-[11px]">{acc.kode}</span>
+                  <span className="text-[10px] opacity-80">({acc.short})</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${selectedRekening === acc.kode ? 'bg-indigo-700 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Filter Sumber Data */}
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold">
+            <button
+              onClick={() => setSourceFilter('all')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${sourceFilter === 'all' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              Semua Sumber ({combinedHibahData.length})
+            </button>
+            <button
+              onClick={() => setSourceFilter('auto')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${sourceFilter === 'auto' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              ⚡ Otomatis APBD ({autoCount})
+            </button>
+            <button
+              onClick={() => setSourceFilter('manual')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${sourceFilter === 'manual' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              Input Manual ({manualCount})
+            </button>
+          </div>
         </div>
 
         {/* Detailed Dropdown Filters */}
@@ -548,7 +826,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Kode Rekening</th>
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Uraian Rekening / Belanja</th>
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Penerima Hibah</th>
-              <th className="px-5 py-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black min-w-[220px]">Preview Keterangan Belanja</th>
+              <th className="px-5 py-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black min-w-[220px]">Preview Keterangan Belanja (SP2D)</th>
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Sub Kegiatan</th>
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">Anggaran</th>
               <th className="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right print:px-1 print:py-1.5 print:text-[7.5px] print:text-black">SPD</th>
@@ -566,8 +844,10 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
               const percent = (row.anggaran || 0) > 0 ? ((row.realisasi || 0) / (row.anggaran || 0)) * 100 : 0;
               const isOverSpd = (row.realisasi || 0) > (row.spd || 0);
 
-              // Cari info badge akun
-              const targetMeta = TARGET_HIBAH_ACCOUNTS.find(a => clean(a.kode) === clean(row.kode_rekening || ''));
+              // Cari info badge akun target
+              const targetMeta = TARGET_HIBAH_ACCOUNTS.find(a => 
+                clean(a.kode) === clean(row.kode_rekening || '') || isMatchingAccount(a.kode, row.kode_rekening)
+              );
 
               return (
                 <tr key={row.id || idx} className={`hover:bg-gray-50 transition-colors ${isOverSpd ? 'bg-orange-50/40' : ''}`}>
@@ -578,11 +858,18 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                   {/* Kode Rekening */}
                   <td className="px-5 py-4 print:px-1 print:py-1">
                     <div className="flex flex-col gap-1">
-                      <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border inline-block w-fit ${
-                        targetMeta ? `${targetMeta.badgeBg} ${targetMeta.badgeText} ${targetMeta.borderColor}` : 'bg-gray-100 text-gray-700 border-gray-200'
-                      } print:border-none print:p-0 print:text-[7px] print:text-black`}>
-                        {row.kode_rekening || '-'}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border inline-block w-fit ${
+                          targetMeta ? `${targetMeta.badgeBg} ${targetMeta.badgeText} ${targetMeta.borderColor}` : 'bg-gray-100 text-gray-700 border-gray-200'
+                        } print:border-none print:p-0 print:text-[7px] print:text-black`}>
+                          {row.kode_rekening || '-'}
+                        </span>
+                        {row.isAutoGenerated && (
+                          <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold px-1.5 py-0.2 rounded print:hidden" title="Otomatis diambil dari Master APBD & Realisasi SP2D">
+                            ⚡ Auto
+                          </span>
+                        )}
+                      </div>
                       {targetMeta && (
                         <span className="text-[10px] text-gray-400 font-medium print:hidden">
                           {targetMeta.short}
@@ -607,7 +894,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                     </div>
                   </td>
 
-                  {/* Preview Keterangan Belanja */}
+                  {/* Preview Keterangan Belanja (SP2D) */}
                   <td className="px-5 py-4 max-w-[280px] print:px-1 print:py-1 print:max-w-none">
                     <div className="space-y-1.5">
                       {matchingRealizations.length > 0 ? (
@@ -712,7 +999,9 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <Gift size={32} className="text-gray-300" />
                     <p className="text-sm font-bold">Tidak ada data hibah yang cocok dengan filter yang dipilih.</p>
-                    <p className="text-xs text-gray-400">Coba ubah filter kode rekening, kegiatan, atau kata kunci pencarian.</p>
+                    <p className="text-xs text-gray-400">
+                      Pastikan Master Data APBD atau Realisasi SP2D memuat kode rekening hibah (5.1.05... / 5.1.02.01.001.00040) atau tambah data di menu Dana Hibah.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -760,6 +1049,11 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                     <span className="text-xs text-indigo-200">
                       • {previewModal.item.kode_sub_kegiatan || '-'}
                     </span>
+                    {previewModal.item.isAutoGenerated && (
+                      <span className="text-[10px] bg-indigo-600/60 text-indigo-100 px-2 py-0.5 rounded-full font-bold">
+                        ⚡ Auto Sync APBD & SP2D
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-lg font-black tracking-tight">
                     Preview Keterangan Belanja Hibah
@@ -811,7 +1105,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                       <FileText size={14} className="text-indigo-600" />
-                      Rincian Keterangan Dokumen Belanja Realisasi ({previewModal.realizations.length} Transaksi)
+                      Rincian Keterangan Dokumen Belanja Realisasi ({previewModal.realizations.length} Transaksi SP2D)
                     </h4>
                   </div>
 
