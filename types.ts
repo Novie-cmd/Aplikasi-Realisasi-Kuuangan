@@ -31,6 +31,7 @@ export interface RealizationData {
   realisasi: number;
   keterangan_dokumen: string;
   tanggal?: string;
+  nomor_sp2d?: string;
 }
 
 export interface ExpenditureData {
