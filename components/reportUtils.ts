@@ -53,30 +53,119 @@ export const getBidangFromRealization = (r: RealizationData, masterData: MasterD
   return getBidangName(programName);
 };
 
-export const parseDateInfo = (dateStr?: string) => {
-  if (!dateStr) return { year: null, month: null, quarter: null };
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) {
-    // try YYYY-MM-DD splitting
-    const parts = String(dateStr).split('-');
-    if (parts.length >= 2) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      if (!isNaN(year) && !isNaN(month) && month >= 0 && month <= 11) {
-        return {
-          year,
-          month,
-          quarter: Math.floor(month / 3) + 1
-        };
-      }
-    }
-    return { year: null, month: null, quarter: null };
+/**
+ * Robust date parser that handles:
+ * - YYYY-MM-DD or YYYY/MM/DD (without timezone distortion)
+ * - DD/MM/YYYY or DD-MM-YYYY
+ * - Excel Serial Numbers (e.g. 45000+)
+ * - Standard ISO strings and Date objects
+ */
+export const parseDateSafe = (dateVal?: any): {
+  year: number | null;
+  month: number | null; // 0 to 11
+  day: number | null; // 1 to 31
+  quarter: number | null; // 1 to 4
+  iso: string; // YYYY-MM-DD
+} => {
+  if (dateVal === null || dateVal === undefined || dateVal === '') {
+    return { year: null, month: null, day: null, quarter: null, iso: '' };
   }
-  const year = d.getFullYear();
-  const month = d.getMonth();
-  return {
-    year,
-    month,
-    quarter: Math.floor(month / 3) + 1
-  };
+
+  // 1. Excel Serial Number
+  if (typeof dateVal === 'number') {
+    const d = new Date(Math.round((dateVal - 25569) * 86400 * 1000));
+    if (!isNaN(d.getTime())) {
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return { year, month, day, quarter: Math.floor(month / 3) + 1, iso };
+    }
+  }
+
+  // 2. Date Object
+  if (dateVal instanceof Date) {
+    if (!isNaN(dateVal.getTime())) {
+      const year = dateVal.getFullYear();
+      const month = dateVal.getMonth();
+      const day = dateVal.getDate();
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return { year, month, day, quarter: Math.floor(month / 3) + 1, iso };
+    }
+  }
+
+  const str = String(dateVal).trim();
+  if (!str) return { year: null, month: null, day: null, quarter: null, iso: '' };
+
+  // 3. Match YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
+  const ymdMatch = str.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1; // 0-11
+    const day = parseInt(ymdMatch[3], 10);
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return { year, month, day, quarter: Math.floor(month / 3) + 1, iso };
+    }
+  }
+
+  // 4. Match DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY
+  const dmyMatch = str.match(/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})/);
+  if (dmyMatch) {
+    let day = parseInt(dmyMatch[1], 10);
+    let month = parseInt(dmyMatch[2], 10) - 1; // 0-11
+    const year = parseInt(dmyMatch[3], 10);
+    // Jika formatnya MM/DD/YYYY dan day > 12:
+    if (month > 11 && day <= 12) {
+      const temp = day;
+      day = month + 1;
+      month = temp - 1;
+    }
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return { year, month, day, quarter: Math.floor(month / 3) + 1, iso };
+    }
+  }
+
+  // 5. Fallback Date.parse
+  try {
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      const year = parsed.getFullYear();
+      const month = parsed.getMonth();
+      const day = parsed.getDate();
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      return { year, month, day, quarter: Math.floor(month / 3) + 1, iso };
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return { year: null, month: null, day: null, quarter: null, iso: str };
 };
+
+export const parseDateInfo = (dateStr?: any) => {
+  const { year, month, quarter } = parseDateSafe(dateStr);
+  return { year, month, quarter };
+};
+
+export const formatDateIndo = (dateStr?: any): string => {
+  if (!dateStr) return '-';
+  const { year, month, day } = parseDateSafe(dateStr);
+  if (year === null || month === null || day === null) {
+    return String(dateStr || '-');
+  }
+  const monthName = MONTH_SHORT_NAMES[month] || MONTH_NAMES[month] || '';
+  return `${day} ${monthName} ${year}`;
+};
+
+export const formatDateIndoLong = (dateStr?: any): string => {
+  if (!dateStr) return 'Semua Periode';
+  const { year, month, day } = parseDateSafe(dateStr);
+  if (year === null || month === null || day === null) {
+    return String(dateStr || '-');
+  }
+  const monthName = MONTH_NAMES[month] || '';
+  return `${day} ${monthName} ${year}`;
+};
+

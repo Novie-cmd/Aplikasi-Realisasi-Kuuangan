@@ -4,6 +4,7 @@ import { Upload, Trash2, Search, FileSpreadsheet, AlertCircle, CircleDollarSign,
 import * as XLSX from 'xlsx';
 import { RealizationData, MasterData } from '../types';
 import SearchableSelect from '../components/SearchableSelect';
+import { parseDateSafe, formatDateIndo, formatIDR } from '../components/reportUtils';
 
 interface Props {
   data: RealizationData[];
@@ -228,68 +229,11 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
   };
 
   const parseExcelDate = (val: any): string => {
-    if (val === null || val === undefined || val === '') {
-      return new Date().toISOString().substring(0, 10);
+    const parsed = parseDateSafe(val);
+    if (parsed.iso) {
+      return parsed.iso;
     }
-    
-    if (val instanceof Date) {
-      try {
-        return val.toISOString().substring(0, 10);
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    if (typeof val === 'number') {
-      try {
-        const date = new Date(Math.round((val - 25569) * 86400 * 1000));
-        if (!isNaN(date.getTime())) {
-          return date.toISOString().substring(0, 10);
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    const str = String(val).trim();
-    
-    const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-    if (dmyMatch) {
-      const day = dmyMatch[1].padStart(2, '0');
-      const month = dmyMatch[2].padStart(2, '0');
-      const year = dmyMatch[3];
-      return `${year}-${month}-${day}`;
-    }
-
-    const ymdMatch = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (ymdMatch) {
-      const year = ymdMatch[1];
-      const month = ymdMatch[2].padStart(2, '0');
-      const day = ymdMatch[3].padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    try {
-      const parsed = new Date(str);
-      if (!isNaN(parsed.getTime())) {
-        return parsed.toISOString().substring(0, 10);
-      }
-    } catch (e) {
-      // ignore
-    }
-
     return new Date().toISOString().substring(0, 10);
-  };
-
-  const formatDateIndo = (dateStr: string): string => {
-    if (!dateStr) return '-';
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch {
-      return dateStr;
-    }
   };
 
   const findValue = (row: any, keywords: string[]) => {
@@ -565,16 +509,24 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </tr>
           </thead>
           <tbody className="divide-y">
-            {data.filter(i => 
-              i.skpd.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              i.belanja.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              i.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              i.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (i.keterangan_dokumen && i.keterangan_dokumen.toLowerCase().includes(searchTerm.toLowerCase())) ||
-              (i.tanggal && i.tanggal.includes(searchTerm)) ||
-              i.kode_kegiatan.includes(searchTerm) ||
-              i.kode_belanja.includes(searchTerm)
-            ).map((row) => (
+            {data.filter(i => {
+              const q = searchTerm.toLowerCase().trim();
+              if (!q) return true;
+              return (
+                (i.skpd || '').toLowerCase().includes(q) ||
+                (i.belanja || '').toLowerCase().includes(q) ||
+                (i.program || '').toLowerCase().includes(q) ||
+                (i.kegiatan || '').toLowerCase().includes(q) ||
+                (i.sub_kegiatan || '').toLowerCase().includes(q) ||
+                (i.keterangan_dokumen && i.keterangan_dokumen.toLowerCase().includes(q)) ||
+                (i.tanggal && i.tanggal.includes(q)) ||
+                formatDateIndo(i.tanggal || '').toLowerCase().includes(q) ||
+                (i.kode_kegiatan || '').toLowerCase().includes(q) ||
+                (i.kode_sub_kegiatan || '').toLowerCase().includes(q) ||
+                (i.kode_belanja || '').toLowerCase().includes(q) ||
+                (i.nomor_sp2d && i.nomor_sp2d.toLowerCase().includes(q))
+              );
+            }).map((row) => (
               <tr key={row.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">

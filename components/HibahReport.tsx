@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { MasterData, RealizationData, HibahData } from '../types';
 import SearchableSelect from './SearchableSelect';
 import { motion, AnimatePresence } from 'motion/react';
-import { clean, formatIDR } from './reportUtils';
+import { clean, formatIDR, formatDateIndo } from './reportUtils';
 
 interface Props {
   hibahData: HibahData[];
@@ -1318,7 +1318,7 @@ export const HibahReport: React.FC<Props> = ({ hibahData = [], realizationData =
                                     <div key={tx.id || txIdx} className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1.5">
                                       <div className="flex items-center justify-between">
                                         <span className="font-mono bg-white text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded font-bold text-[10px]">
-                                          📅 {tx.tanggal || 'N/A'} • {tx.nomor_sp2d || 'SP2D'}
+                                          📅 {formatDateIndo(tx.tanggal)} • {tx.nomor_sp2d || 'SP2D'}
                                         </span>
                                         <span className="font-bold text-emerald-600 text-xs">
                                           Rp {formatIDR(tx.realisasi)}

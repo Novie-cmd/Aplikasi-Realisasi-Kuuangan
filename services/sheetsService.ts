@@ -1,4 +1,5 @@
 import { MasterData, RealizationData, ExpenditureData, HibahData } from "../types";
+import { parseDateSafe } from "../components/reportUtils";
 
 const VAL_OPTION = "USER_ENTERED";
 
@@ -347,6 +348,7 @@ export const SheetsService = {
     const realizationVals = valueRanges[1]?.values || [];
     realizationVals.forEach((row: any[]) => {
       if (!row[0]) return;
+      const parsedDate = parseDateSafe(row[13]);
       realizationData.push({
         id: row[0],
         skpd: row[1] || "",
@@ -361,7 +363,7 @@ export const SheetsService = {
         kode_belanja: row[10] || "",
         realisasi: Number(row[11]) || 0,
         keterangan_dokumen: row[12] || "",
-        tanggal: row[13] || new Date().toISOString().substring(0, 10),
+        tanggal: parsedDate.iso || row[13] || new Date().toISOString().substring(0, 10),
       });
     });
 

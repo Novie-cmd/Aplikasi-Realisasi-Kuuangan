@@ -7,6 +7,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { MonthlyReport } from '../components/MonthlyReport';
 import { QuarterlyReport } from '../components/QuarterlyReport';
 import { HibahReport } from '../components/HibahReport';
+import { parseDateSafe, formatDateIndo } from '../components/reportUtils';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Props {
@@ -282,8 +283,9 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       // Filter berdasarkan Periode Tanggal
       if (startDate || endDate) {
         if (!r.tanggal) return;
-        if (startDate && r.tanggal < startDate) return;
-        if (endDate && r.tanggal > endDate) return;
+        const rIso = parseDateSafe(r.tanggal).iso || r.tanggal;
+        if (startDate && rIso < startDate) return;
+        if (endDate && rIso > endDate) return;
       }
 
       let rKey = '';
