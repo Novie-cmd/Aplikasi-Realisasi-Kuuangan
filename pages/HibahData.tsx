@@ -374,53 +374,53 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
     <div className="space-y-6">
       {/* Cards Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+        <div className="p-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-slate-700 rounded-xl text-slate-200">
             <CircleDollarSign size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Total Anggaran</p>
-            <h4 className="text-sm font-black text-gray-900 mt-1">Rp {formatIDR(totals.anggaran)}</h4>
+            <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total Anggaran</p>
+            <h4 className="text-sm font-black text-white mt-1">Rp {formatIDR(totals.anggaran)}</h4>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+        <div className="p-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-[#064e3b]/50 rounded-xl text-emerald-300">
             <FileSpreadsheet size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Total SPD</p>
-            <h4 className="text-sm font-black text-blue-600 mt-1">Rp {formatIDR(totals.spd)}</h4>
+            <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total SPD</p>
+            <h4 className="text-sm font-black text-emerald-400 mt-1">Rp {formatIDR(totals.spd)}</h4>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+        <div className="p-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-[#064e3b] rounded-xl text-emerald-200">
             <CircleDollarSign size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Total Realisasi</p>
-            <h4 className="text-sm font-black text-emerald-600 mt-1">Rp {formatIDR(totals.realisasi)}</h4>
+            <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total Realisasi</p>
+            <h4 className="text-sm font-black text-emerald-400 mt-1">Rp {formatIDR(totals.realisasi)}</h4>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
+        <div className="p-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-slate-700/60 rounded-xl text-slate-300">
             <AlertCircle size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Total Sisa SPD</p>
-            <h4 className="text-sm font-black text-amber-600 mt-1">Rp {formatIDR(totals.sisa_spd)}</h4>
+            <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total Sisa SPD</p>
+            <h4 className="text-sm font-black text-slate-200 mt-1">Rp {formatIDR(totals.sisa_spd)}</h4>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-red-50 rounded-xl text-red-600">
+        <div className="p-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-[#4c0519]/70 rounded-xl text-rose-300">
             <AlertCircle size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Total Sisa Angg</p>
-            <h4 className="text-sm font-black text-red-600 mt-1">Rp {formatIDR(totals.sisa_realisasi)}</h4>
+            <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total Sisa Angg</p>
+            <h4 className="text-sm font-black text-rose-400 mt-1">Rp {formatIDR(totals.sisa_realisasi)}</h4>
           </div>
         </div>
       </div>
@@ -430,7 +430,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-100 transition-all"
+            className="px-4 py-2.5 bg-[#064e3b] hover:bg-[#047857] text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-950 border border-emerald-600/40 transition-all"
           >
             {editingId ? <Save size={16} /> : <Plus size={16} />} 
             {showForm ? 'Sembunyikan Form' : (editingId ? 'Edit Hibah' : 'Tambah Hibah Manual')}
@@ -438,7 +438,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
           
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 rounded-xl text-sm font-bold flex items-center gap-2 transition-all"
+            className="px-4 py-2.5 bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 rounded-xl text-sm font-bold flex items-center gap-2 transition-all"
           >
             <Upload size={16} /> Import Excel
           </button>
@@ -457,7 +457,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                   clearAll();
                 }
               }}
-              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ml-auto md:ml-0"
+              className="px-4 py-2.5 bg-[#4c0519] hover:bg-[#5c0617] text-rose-200 border border-[#881337]/60 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ml-auto md:ml-0"
             >
               <Trash2 size={16} /> Hapus Semua
             </button>
@@ -466,19 +466,19 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Cari hibah kegiatan/sub..."
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 focus:border-indigo-500 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-50/50 bg-white font-medium"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500 font-medium transition-all"
           />
         </div>
       </div>
 
       {importStatus && (
-        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-3 text-indigo-700 text-sm font-medium animate-pulse">
+        <div className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-medium border ${importStatus.includes('Berhasil') ? 'bg-[#064e3b]/50 text-emerald-200 border-emerald-700/60' : 'bg-[#4c0519]/50 text-rose-200 border-[#881337]/60'}`}>
           <FileSpreadsheet size={18} />
           {importStatus}
         </div>
@@ -486,12 +486,12 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
       {/* Form Input */}
       {showForm && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-xl space-y-6 max-w-4xl animate-in slide-in-from-top-4 duration-200">
-          <div className="flex items-center justify-between border-b pb-4">
-            <h3 className="font-black text-gray-900 uppercase tracking-tight">
+        <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 shadow-2xl space-y-6 max-w-4xl animate-in slide-in-from-top-4 duration-200">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <h3 className="font-black text-white uppercase tracking-tight">
               {editingId ? 'Edit Data Hibah' : 'Input Data Hibah Baru'}
             </h3>
-            <button onClick={cancelEdit} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400">
+            <button onClick={cancelEdit} className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
               <CloseIcon size={20} />
             </button>
           </div>
@@ -510,14 +510,14 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Kode Kegiatan */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Kode Kegiatan
                 </label>
                 <input 
                   type="text"
                   disabled
                   value={formData.kode_kegiatan}
-                  className="w-full p-2 border border-gray-200 bg-gray-100 text-gray-500 rounded-xl text-sm outline-none font-bold"
+                  className="w-full p-2.5 border border-slate-700 bg-slate-800/60 text-slate-400 rounded-xl text-sm outline-none font-bold font-mono"
                   placeholder="Terisi otomatis..."
                 />
               </div>
@@ -534,21 +534,21 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Kode Sub Kegiatan */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Kode Sub Kegiatan
                 </label>
                 <input 
                   type="text"
                   disabled
                   value={formData.kode_sub_kegiatan}
-                  className="w-full p-2 border border-gray-200 bg-gray-100 text-gray-500 rounded-xl text-sm outline-none font-bold"
+                  className="w-full p-2.5 border border-slate-700 bg-slate-800/60 text-slate-400 rounded-xl text-sm outline-none font-bold font-mono"
                   placeholder="Terisi otomatis..."
                 />
               </div>
 
               {/* Uraian with Combobox list */}
               <div className="space-y-1 relative" ref={uraianComboRef}>
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Uraian
                 </label>
                 <div className="relative">
@@ -557,19 +557,19 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                     value={formData.uraian}
                     onChange={(e) => setFormData({...formData, uraian: e.target.value})}
                     onFocus={() => setShowUraianSuggestions(true)}
-                    className="w-full p-2 pr-8 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                    className="w-full p-2.5 pr-8 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white font-bold"
                     placeholder="Pilih/ketik uraian..."
                   />
                   <button
                     type="button"
                     onClick={() => setShowUraianSuggestions(prev => !prev)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white focus:outline-none"
                   >
                     <ChevronDown size={16} className={`transition-transform ${showUraianSuggestions ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
                 {showUraianSuggestions && uraianSuggestions.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-800">
                     {uraianSuggestions
                       .filter(item => 
                         item.belanja.toLowerCase().includes((formData.uraian || '').toLowerCase()) ||
@@ -586,17 +586,17 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                             });
                             setShowUraianSuggestions(false);
                           }}
-                          className="px-4 py-2 text-sm hover:bg-indigo-50 cursor-pointer text-gray-700 border-b last:border-b-0 border-gray-100 flex flex-col gap-0.5"
+                          className="px-4 py-2.5 text-sm hover:bg-slate-800 cursor-pointer text-slate-200 flex flex-col gap-0.5 transition-colors"
                         >
-                          <span className="font-bold truncate">{item.belanja}</span>
-                          <span className="text-[10px] text-indigo-600 font-mono font-bold">{item.kode_belanja}</span>
+                          <span className="font-bold truncate text-white">{item.belanja}</span>
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold">{item.kode_belanja}</span>
                         </div>
                       ))}
                     {uraianSuggestions.filter(item => 
                       item.belanja.toLowerCase().includes((formData.uraian || '').toLowerCase()) ||
                       item.kode_belanja.toLowerCase().includes((formData.uraian || '').toLowerCase())
                     ).length === 0 && (
-                      <div className="px-4 py-2 text-xs text-gray-400 italic">
+                      <div className="px-4 py-2.5 text-xs text-slate-500 italic">
                         Tidak ada pencocokan (ketik untuk membuat baru)
                       </div>
                     )}
@@ -606,44 +606,44 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Kode Rekening (dibawa Kode Sub Kegiatan) */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Kode Rekening
                 </label>
                 <input 
                   type="text"
                   value={formData.kode_rekening}
                   onChange={(e) => setFormData({...formData, kode_rekening: e.target.value})}
-                  className="w-full p-2 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                  className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white font-bold font-mono"
                   placeholder="Kode Rekening..."
                 />
               </div>
 
               {/* Penerima Hibah */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Penerima Hibah
                 </label>
                 <input 
                   type="text"
                   value={formData.penerima_hibah}
                   onChange={(e) => setFormData({...formData, penerima_hibah: e.target.value})}
-                  className="w-full p-2 border border-gray-200 rounded-xl text-sm outline-none font-bold"
+                  className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white font-bold"
                   placeholder="Nama Penerima Hibah..."
                 />
               </div>
 
               {/* Anggaran */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Anggaran
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     value={formData.anggaran ? formatIDR(formData.anggaran) : ''}
                     onChange={(e) => setFormData({...formData, anggaran: parseNumber(e.target.value)})}
-                    className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white font-bold"
                     placeholder="0"
                   />
                 </div>
@@ -651,16 +651,16 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Pagu SPD */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Pagu SPD
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     value={formData.spd ? formatIDR(formData.spd) : ''}
                     onChange={(e) => setFormData({...formData, spd: parseNumber(e.target.value)})}
-                    className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white font-bold"
                     placeholder="0"
                   />
                 </div>
@@ -668,16 +668,16 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Realisasi */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Realisasi
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     value={formData.realisasi ? formatIDR(formData.realisasi) : ''}
                     onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
-                    className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-emerald-400 font-bold"
                     placeholder="0"
                   />
                 </div>
@@ -685,48 +685,48 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
 
               {/* Sisa SPD (Calculated) */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Sisa SPD (Otomatis)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     disabled 
                     value={formatIDR(sisaSpd)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-50 text-amber-600 rounded-xl text-sm outline-none font-bold"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-700 bg-slate-800/60 text-slate-300 rounded-xl text-sm outline-none font-bold"
                   />
                 </div>
               </div>
 
               {/* Sisa Realisasi (Calculated) */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Sisa Realisasi / Anggaran (Otomatis)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                   <input 
                     type="text" 
                     disabled 
                     value={formatIDR(sisaRealisasi)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-50 text-red-600 rounded-xl text-sm outline-none font-bold"
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-700 bg-slate-800/60 text-rose-400 rounded-xl text-sm outline-none font-bold"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
               <button 
                 type="button" 
                 onClick={cancelEdit}
-                className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50"
+                className="px-5 py-2.5 border border-slate-700 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800 transition-colors"
               >
                 Batal
               </button>
               <button 
                 type="submit" 
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-100"
+                className="px-6 py-2.5 bg-[#064e3b] hover:bg-[#047857] text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-950 border border-emerald-600/40 transition-all"
               >
                 <Save size={16} /> {editingId ? 'Simpan Perubahan' : 'Simpan Data'}
               </button>
@@ -740,7 +740,7 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
         <div 
           ref={topScrollRef}
           onScroll={handleTopScroll}
-          className="overflow-x-auto h-5 bg-gray-50/50 rounded-t-xl border border-b-0 border-gray-200"
+          className="overflow-x-auto h-5 bg-slate-900/60 rounded-t-xl border border-b-0 border-slate-700"
         >
           <div className="min-w-[1850px] h-1 animate-in fade-in"></div>
         </div>
@@ -748,37 +748,37 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
         <div 
           ref={tableRef}
           onScroll={handleTableScroll}
-          className="bg-white rounded-b-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
+          className="bg-slate-800 rounded-b-xl shadow-sm border border-slate-700 overflow-hidden overflow-x-auto relative"
         >
           <table className="w-full text-left min-w-[1850px]">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-slate-900 border-b border-slate-700">
               <tr>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase w-28">Aksi</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Rekening</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Uraian</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Penerima Hibah</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Anggaran</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">SPD</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-center">% Realisasi</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Sisa SPD</th>
-                <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Sisa Realisasi</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase w-28">Aksi</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kegiatan</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Kegiatan</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Sub Kegiatan</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Sub</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Rekening</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Uraian</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Penerima Hibah</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Anggaran</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">SPD</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Realisasi</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-center">% Realisasi</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Sisa SPD</th>
+                <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Sisa Realisasi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-700 text-slate-200">
               {filteredData.length > 0 ? (
                 filteredData.map((row) => {
                   const persenRealisasi = row.anggaran > 0 ? (row.realisasi / row.anggaran) * 100 : 0;
                   return (
-                    <tr key={row.id} className="hover:bg-gray-50/55 transition-colors">
-                      <td className="px-4 py-3 flex items-center gap-2">
+                    <tr key={row.id} className="hover:bg-slate-700/50 transition-colors">
+                      <td className="px-4 py-3 flex items-center gap-1.5">
                         <button 
                           onClick={() => startEdit(row)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 text-emerald-400 hover:bg-[#064e3b]/50 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 size={14} />
@@ -789,38 +789,38 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
                               deleteRow(row.id);
                             }
                           }}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-rose-400 hover:bg-[#4c0519]/50 rounded-lg transition-colors"
                           title="Hapus"
                         >
                           <Trash2 size={14} />
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-gray-900 max-w-xs truncate" title={row.kegiatan}>{row.kegiatan}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_kegiatan}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.sub_kegiatan}>{row.sub_kegiatan}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_sub_kegiatan}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 font-mono font-medium">{row.kode_rekening || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.uraian}>{row.uraian || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate" title={row.penerima_hibah}>{row.penerima_hibah || '-'}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">Rp {formatIDR(row.anggaran)}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">Rp {formatIDR(row.spd)}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">Rp {formatIDR(row.realisasi)}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-white max-w-xs truncate" title={row.kegiatan}>{row.kegiatan}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 font-mono font-medium">{row.kode_kegiatan}</td>
+                      <td className="px-4 py-3 text-sm text-slate-300 max-w-xs truncate" title={row.sub_kegiatan}>{row.sub_kegiatan}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 font-mono font-medium">{row.kode_sub_kegiatan}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 font-mono font-medium">{row.kode_rekening || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-emerald-300 font-medium max-w-xs truncate" title={row.uraian}>{row.uraian || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-200 font-medium max-w-xs truncate" title={row.penerima_hibah}>{row.penerima_hibah || '-'}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-right text-white">Rp {formatIDR(row.anggaran)}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-right text-emerald-400">Rp {formatIDR(row.spd)}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-right text-emerald-400">Rp {formatIDR(row.realisasi)}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center px-2 py-1.5 rounded-full text-xs font-black select-none ${
-                          persenRealisasi >= 90 ? 'bg-emerald-50 text-emerald-700' :
-                          persenRealisasi >= 50 ? 'bg-blue-50 text-blue-700' : 'bg-rose-50 text-rose-700'
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black select-none border ${
+                          persenRealisasi >= 90 ? 'bg-[#064e3b] text-emerald-300 border-emerald-700' :
+                          persenRealisasi >= 50 ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-[#4c0519] text-rose-300 border-rose-900'
                         }`}>
                           {persenRealisasi.toFixed(1)}%
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-right text-amber-600">Rp {formatIDR(row.sisa_spd)}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-right text-red-600">Rp {formatIDR(row.sisa_realisasi)}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-right text-slate-300">Rp {formatIDR(row.sisa_spd)}</td>
+                      <td className="px-4 py-3 text-sm font-bold text-right text-rose-400">Rp {formatIDR(row.sisa_realisasi)}</td>
                     </tr>
                   )
                 })
               ) : (
                 <tr>
-                  <td colSpan={14} className="px-4 py-12 text-sm text-center text-gray-400 italic">
+                  <td colSpan={14} className="px-4 py-12 text-sm text-center text-slate-500 italic">
                     Belum ada data hibah atau tidak ditemukan hasil pencarian.
                   </td>
                 </tr>
@@ -828,18 +828,18 @@ const HibahDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow,
             </tbody>
             {/* Total Footer row */}
             {filteredData.length > 0 && (
-              <tfoot className="bg-gray-50 border-t-2 border-gray-200">
-                <tr className="font-black text-gray-900">
+              <tfoot className="bg-slate-900 border-t-2 border-slate-700">
+                <tr className="font-black text-white">
                   <td className="px-4 py-3">Total</td>
-                  <td colSpan={7} className="px-4 py-3 text-xs text-gray-400 tracking-wider">KESELURUHAN DATA HIBAH</td>
-                  <td className="px-4 py-3 text-sm text-right">Rp {formatIDR(totals.anggaran)}</td>
-                  <td className="px-4 py-3 text-sm text-right text-blue-600">Rp {formatIDR(totals.spd)}</td>
-                  <td className="px-4 py-3 text-sm text-right text-emerald-600">Rp {formatIDR(totals.realisasi)}</td>
-                  <td className="px-4 py-3 text-sm text-center text-indigo-600">
+                  <td colSpan={7} className="px-4 py-3 text-xs text-slate-400 tracking-wider">KESELURUHAN DATA HIBAH</td>
+                  <td className="px-4 py-3 text-sm text-right text-white">Rp {formatIDR(totals.anggaran)}</td>
+                  <td className="px-4 py-3 text-sm text-right text-emerald-400">Rp {formatIDR(totals.spd)}</td>
+                  <td className="px-4 py-3 text-sm text-right text-emerald-400">Rp {formatIDR(totals.realisasi)}</td>
+                  <td className="px-4 py-3 text-sm text-center text-emerald-300">
                     {totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(1) : '0.0'}%
                   </td>
-                  <td className="px-4 py-3 text-sm text-right text-amber-600">Rp {formatIDR(totals.sisa_spd)}</td>
-                  <td className="px-4 py-3 text-sm text-right text-red-600">Rp {formatIDR(totals.sisa_realisasi)}</td>
+                  <td className="px-4 py-3 text-sm text-right text-slate-300">Rp {formatIDR(totals.sisa_spd)}</td>
+                  <td className="px-4 py-3 text-sm text-right text-rose-400">Rp {formatIDR(totals.sisa_realisasi)}</td>
                 </tr>
               </tfoot>
             )}

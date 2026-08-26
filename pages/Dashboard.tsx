@@ -199,71 +199,71 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 transition-all hover:border-slate-600">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Wallet size={24} /></div>
+            <div className="p-3 bg-slate-700/80 text-white rounded-xl"><Wallet size={24} /></div>
             <div>
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Total Anggaran</p>
-              <h3 className="text-lg font-bold text-gray-900">{formatIDR(stats.totalAnggaran)}</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Total Anggaran</p>
+              <h3 className="text-lg font-bold text-white">{formatIDR(stats.totalAnggaran)}</h3>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 transition-all hover:border-emerald-700/60">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><TrendingUp size={24} /></div>
+            <div className="p-3 bg-[#064e3b] text-emerald-300 rounded-xl border border-emerald-600/30"><TrendingUp size={24} /></div>
             <div>
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Realisasi</p>
-              <h3 className="text-lg font-bold text-emerald-600">{formatIDR(stats.totalRealisasi)}</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Realisasi</p>
+              <h3 className="text-lg font-bold text-emerald-400">{formatIDR(stats.totalRealisasi)}</h3>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 transition-all hover:border-rose-800/60">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><CircleDollarSign size={24} /></div>
+            <div className="p-3 bg-[#4c0519] text-rose-300 rounded-xl border border-[#881337]/50"><CircleDollarSign size={24} /></div>
             <div>
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Sisa Anggaran</p>
-              <h3 className="text-lg font-bold text-gray-900">{formatIDR(stats.sisa)}</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sisa Anggaran</p>
+              <h3 className="text-lg font-bold text-rose-300">{formatIDR(stats.sisa)}</h3>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 transition-all hover:border-rose-800/60">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><Coins size={24} /></div>
+            <div className="p-3 bg-[#4c0519] text-rose-300 rounded-xl border border-[#881337]/50"><Coins size={24} /></div>
             <div>
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">SPD Tersedia</p>
-              <h3 className="text-lg font-bold text-rose-600">{formatIDR(stats.sisaSpd)}</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">SPD Tersedia</p>
+              <h3 className="text-lg font-bold text-rose-300">{formatIDR(stats.sisaSpd)}</h3>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 transition-all hover:border-emerald-700/60">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Percent size={24} /></div>
+            <div className="p-3 bg-[#064e3b] text-emerald-300 rounded-xl border border-emerald-600/30"><Percent size={24} /></div>
             <div>
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Persentase</p>
-              <h3 className="text-lg font-bold text-indigo-600">{stats.persentase.toFixed(2)}%</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Persentase</p>
+              <h3 className="text-lg font-bold text-emerald-400">{stats.persentase.toFixed(2)}%</h3>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex p-1 bg-gray-100 rounded-xl w-full md:w-auto overflow-x-auto no-scrollbar">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-800 p-2.5 rounded-2xl shadow-sm border border-slate-700">
+        <div className="flex p-1 bg-slate-900/80 rounded-xl w-full md:w-auto overflow-x-auto no-scrollbar border border-slate-750">
           <button 
             onClick={() => setActiveTab('visual')}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'visual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'visual' ? 'bg-[#064e3b] text-emerald-100 shadow-md border border-emerald-600/40' : 'text-slate-400 hover:text-white'}`}
           >
             <BarChart3 size={16} /> Visualisasi
           </button>
           <button 
             onClick={() => setActiveTab('table_bidang')}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_bidang' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_bidang' ? 'bg-[#064e3b] text-emerald-100 shadow-md border border-emerald-600/40' : 'text-slate-400 hover:text-white'}`}
           >
             <Table size={16} /> Rincian Bidang
           </button>
           <button 
             onClick={() => setActiveTab('table_belanja')}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_belanja' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'table_belanja' ? 'bg-[#064e3b] text-emerald-100 shadow-md border border-emerald-600/40' : 'text-slate-400 hover:text-white'}`}
           >
             <ListFilter size={16} /> Rincian Belanja
           </button>
@@ -271,13 +271,13 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
 
         {activeTab !== 'visual' && (
           <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
               type="text" 
               placeholder="Cari data..." 
               value={detailSearch}
               onChange={(e) => setDetailSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
             />
           </div>
         )}
@@ -292,36 +292,37 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             exit={{ opacity: 0, y: -20 }}
             className="grid grid-cols-1 lg:grid-cols-3 gap-6"
           >
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="lg:col-span-2 bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-700">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                  <div className="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
+                  <h4 className="font-bold text-white text-sm">Grafik Perbandingan Anggaran vs Realisasi</h4>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400 italic">Geser horizontal jika data banyak →</span>
+                <span className="text-[10px] font-bold text-slate-400 italic">Geser horizontal jika data banyak →</span>
               </div>
               <div className="h-[400px] overflow-x-auto no-scrollbar">
                 <div style={{ minWidth: Math.max(100, chartData.length * 5) + '%' }}>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 40 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                      <XAxis dataKey="name" angle={-15} textAnchor="end" height={60} fontSize={10} interval={0} stroke="#9ca3af" />
-                      <YAxis tickFormatter={(val) => `${(val / 1e6).toFixed(0)}M`} fontSize={10} stroke="#9ca3af" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                      <XAxis dataKey="name" angle={-15} textAnchor="end" height={60} fontSize={10} interval={0} stroke="#94a3b8" />
+                      <YAxis tickFormatter={(val) => `${(val / 1e6).toFixed(0)}M`} fontSize={10} stroke="#94a3b8" />
                       <Tooltip 
-                        cursor={{fill: '#f9fafb'}}
-                        contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                        cursor={{fill: '#1e293b'}}
+                        contentStyle={{backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)'}}
                         formatter={(value: number) => [formatIDR(value), '']}
                       />
-                      <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                      <Bar dataKey="anggaran" name="Anggaran" fill="#818cf8" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="realisasi" name="Realisasi" fill="#34d399" radius={[6, 6, 0, 0]} />
+                      <Legend verticalAlign="top" align="right" height={36} iconType="circle" wrapperStyle={{ color: '#f8fafc' }} />
+                      <Bar dataKey="anggaran" name="Anggaran" fill="#64748b" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="realisasi" name="Realisasi" fill="#10b981" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 self-start">Proporsi Realisasi</h3>
+            <div className="bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-700 flex flex-col items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-300 self-start">Proporsi Realisasi</h3>
               <div className="relative w-full aspect-square max-w-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -335,26 +336,29 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                       cornerRadius={10}
                     >
                       {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#be123c'} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => formatIDR(value)} />
+                    <Tooltip 
+                      formatter={(value: number) => formatIDR(value)}
+                      contentStyle={{backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', color: '#f8fafc'}}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                   <span className="text-5xl font-black text-gray-900 leading-none">{stats.persentase.toFixed(0)}%</span>
-                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">Realisasi</span>
+                   <span className="text-5xl font-black text-white leading-none">{stats.persentase.toFixed(0)}%</span>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Realisasi</span>
                 </div>
               </div>
               
               <div className="w-full space-y-3 mt-4">
-                 <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase">Realisasi</span>
-                    <span className="text-sm font-black text-emerald-800">{formatIDR(stats.totalRealisasi)}</span>
+                 <div className="flex justify-between items-center p-3 bg-[#064e3b]/50 rounded-xl border border-emerald-700/50">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase">Realisasi</span>
+                    <span className="text-sm font-black text-emerald-200">{formatIDR(stats.totalRealisasi)}</span>
                  </div>
-                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-200">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase">Sisa</span>
-                    <span className="text-sm font-black text-gray-700">{formatIDR(stats.sisa)}</span>
+                 <div className="flex justify-between items-center p-3 bg-[#4c0519]/50 rounded-xl border border-[#881337]/50">
+                    <span className="text-[10px] font-bold text-rose-300 uppercase">Sisa Anggaran</span>
+                    <span className="text-sm font-black text-rose-200">{formatIDR(stats.sisa)}</span>
                  </div>
               </div>
             </div>
@@ -367,51 +371,51 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 overflow-hidden"
           >
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[700px]">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-slate-900 border-b border-slate-700">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Bidang</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Realisasi</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Persentase</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sisa</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Nama Bidang</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Anggaran</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Realisasi</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">Persentase</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Sisa</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-700 text-slate-200">
                   {filteredBidangData.map((item, idx) => {
                     const pct = item.anggaran > 0 ? (item.realisasi / item.anggaran) * 100 : 0;
                     return (
-                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.name}</td>
-                        <td className="px-6 py-4 text-sm font-medium text-gray-600 text-right">{formatIDR(item.anggaran)}</td>
-                        <td className="px-6 py-4 text-sm font-bold text-emerald-600 text-right">{formatIDR(item.realisasi)}</td>
+                      <tr key={idx} className="hover:bg-slate-700/50 transition-colors">
+                        <td className="px-6 py-4 text-sm font-bold text-white">{item.name}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-300 text-right">{formatIDR(item.anggaran)}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-emerald-400 text-right">{formatIDR(item.realisasi)}</td>
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-indigo-500" style={{ width: `${Math.min(100, pct)}%` }}></div>
+                            <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, pct)}%` }}></div>
                             </div>
-                            <span className="text-xs font-black text-indigo-600 w-10">{pct.toFixed(1)}%</span>
+                            <span className="text-xs font-black text-emerald-400 w-10">{pct.toFixed(1)}%</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-rose-600 text-right">{formatIDR(item.anggaran - item.realisasi)}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-rose-400 text-right">{formatIDR(item.anggaran - item.realisasi)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-gray-50 border-t">
-                  <tr className="font-black text-gray-900">
+                <tfoot className="bg-slate-900 border-t border-slate-700">
+                  <tr className="font-black text-white">
                     <td className="px-6 py-4 text-sm uppercase tracking-widest">Total Keseluruhan</td>
-                    <td className="px-6 py-4 text-sm text-right">{formatIDR(filteredBidangTotals.anggaran)}</td>
-                    <td className="px-6 py-4 text-sm text-right text-emerald-600">{formatIDR(filteredBidangTotals.realisasi)}</td>
-                    <td className="px-6 py-4 text-center text-xs text-indigo-600">
+                    <td className="px-6 py-4 text-sm text-right text-slate-200">{formatIDR(filteredBidangTotals.anggaran)}</td>
+                    <td className="px-6 py-4 text-sm text-right text-emerald-400">{formatIDR(filteredBidangTotals.realisasi)}</td>
+                    <td className="px-6 py-4 text-center text-xs text-emerald-400">
                       {filteredBidangTotals.anggaran > 0 
                         ? ((filteredBidangTotals.realisasi / filteredBidangTotals.anggaran) * 100).toFixed(1) 
                         : '0.0'}%
                     </td>
-                    <td className="px-6 py-4 text-sm text-right text-rose-600">{formatIDR(filteredBidangTotals.sisa)}</td>
+                    <td className="px-6 py-4 text-sm text-right text-rose-400">{formatIDR(filteredBidangTotals.sisa)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -425,30 +429,30 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 overflow-hidden"
           >
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[700px]">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-slate-900 border-b border-slate-700">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode</th>
-                    <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Uraian Belanja</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Anggaran</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Realisasi</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Persentase</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Kode</th>
+                    <th className="px-4 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Uraian Belanja</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Anggaran</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Realisasi</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">Persentase</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-700 text-slate-200">
                   {belanjaStats.map((item, idx) => {
                     const pct = item.anggaran > 0 ? (item.realisasi / item.anggaran) * 100 : 0;
                     return (
-                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-xs font-mono text-gray-400">{item.kode}</td>
-                        <td className="px-4 py-4 text-sm font-bold text-gray-900">{item.name}</td>
-                        <td className="px-6 py-4 text-sm font-medium text-gray-600 text-right">{formatIDR(item.anggaran)}</td>
-                        <td className="px-6 py-4 text-sm font-bold text-indigo-600 text-right">{formatIDR(item.realisasi)}</td>
+                      <tr key={idx} className="hover:bg-slate-700/50 transition-colors">
+                        <td className="px-6 py-4 text-xs font-mono text-slate-400">{item.kode}</td>
+                        <td className="px-4 py-4 text-sm font-bold text-white">{item.name}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-300 text-right">{formatIDR(item.anggaran)}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-emerald-400 text-right">{formatIDR(item.realisasi)}</td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`px-2 py-1 rounded-md text-[10px] font-black ${pct > 90 ? 'bg-emerald-100 text-emerald-700' : pct > 50 ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                          <span className={`px-2 py-1 rounded-md text-[10px] font-black border ${pct > 90 ? 'bg-[#064e3b] text-emerald-200 border-emerald-600' : pct > 50 ? 'bg-slate-700 text-slate-100 border-slate-600' : 'bg-[#4c0519] text-rose-200 border-[#881337]'}`}>
                             {pct.toFixed(1)}%
                           </span>
                         </td>
@@ -456,12 +460,12 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-gray-50 border-t">
-                  <tr className="font-black text-gray-900">
+                <tfoot className="bg-slate-900 border-t border-slate-700">
+                  <tr className="font-black text-white">
                     <td colSpan={2} className="px-6 py-4 text-sm uppercase tracking-widest">Sub Total</td>
-                    <td className="px-6 py-4 text-sm text-right">{formatIDR(belanjaTotals.anggaran)}</td>
-                    <td className="px-6 py-4 text-sm text-right text-indigo-600">{formatIDR(belanjaTotals.realisasi)}</td>
-                    <td className="px-6 py-4 text-center text-xs text-indigo-600">
+                    <td className="px-6 py-4 text-sm text-right text-slate-200">{formatIDR(belanjaTotals.anggaran)}</td>
+                    <td className="px-6 py-4 text-sm text-right text-emerald-400">{formatIDR(belanjaTotals.realisasi)}</td>
+                    <td className="px-6 py-4 text-center text-xs text-emerald-400">
                       {belanjaTotals.anggaran > 0 
                         ? ((belanjaTotals.realisasi / belanjaTotals.anggaran) * 100).toFixed(1) 
                         : '0.0'}%
@@ -474,8 +478,8 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
         )}
       </AnimatePresence>
 
-      <div className="bg-indigo-600 p-8 rounded-3xl shadow-xl shadow-indigo-200 relative overflow-hidden text-white">
-        <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+      <div className="bg-[#064e3b] p-8 rounded-3xl shadow-xl border border-emerald-600/40 relative overflow-hidden text-white">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
           <Sparkles size={160} />
         </div>
         <div className="relative z-10 space-y-6">
@@ -484,12 +488,12 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
               <h3 className="text-2xl font-black flex items-center gap-3">
                 <Sparkles /> AI Financial Insights
               </h3>
-              <p className="text-indigo-100 text-sm">Analisis otomatis performa realisasi anggaran menggunakan Gemini AI.</p>
+              <p className="text-emerald-100 text-sm">Analisis otomatis performa realisasi anggaran menggunakan Gemini AI.</p>
             </div>
             <button 
               onClick={handleFetchInsight}
               disabled={loadingAi}
-              className="px-6 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 disabled:opacity-50 flex items-center gap-2 transition-all shadow-lg active:scale-95"
+              className="px-6 py-3 bg-white text-[#064e3b] rounded-2xl font-bold hover:bg-slate-100 disabled:opacity-50 flex items-center gap-2 transition-all shadow-lg active:scale-95"
             >
               {loadingAi ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
               Mulai Analisis
@@ -497,7 +501,7 @@ const Dashboard: React.FC<Props> = ({ masterData, realizationData, spendingData 
           </div>
           
           {aiInsight && (
-            <div className="bg-indigo-700/50 backdrop-blur-md p-6 rounded-2xl border border-indigo-400/30 text-indigo-50 leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-4">
+            <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-emerald-500/30 text-slate-100 leading-relaxed font-medium animate-in fade-in slide-in-from-bottom-4">
               <div className="whitespace-pre-wrap">{aiInsight}</div>
             </div>
           )}

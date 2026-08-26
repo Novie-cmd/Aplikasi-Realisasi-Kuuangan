@@ -146,27 +146,27 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
   return (
     <div className="space-y-6">
       {editingItem && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-xl font-bold">Edit Data Master</h3>
-              <button onClick={() => setEditingItem(null)}><X size={20} /></button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 text-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white">Edit Data Master</h3>
+              <button onClick={() => setEditingItem(null)} className="text-slate-400 hover:text-white p-1 rounded"><X size={20} /></button>
             </div>
             <form onSubmit={handleEditSave} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
-                <input className="border p-2 rounded" placeholder="SKPD" value={editingItem.skpd} onChange={e => setEditingItem({...editingItem, skpd: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Kode SKPD" value={editingItem.kode_skpd} onChange={e => setEditingItem({...editingItem, kode_skpd: e.target.value})} />
-                <input className="border p-2 rounded col-span-2" placeholder="Kegiatan" value={editingItem.kegiatan} onChange={e => setEditingItem({...editingItem, kegiatan: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Kode Kegiatan" value={editingItem.kode_kegiatan} onChange={e => setEditingItem({...editingItem, kode_kegiatan: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Sub Kegiatan" value={editingItem.sub_kegiatan} onChange={e => setEditingItem({...editingItem, sub_kegiatan: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Kode Sub Kegiatan" value={editingItem.kode_sub_kegiatan} onChange={e => setEditingItem({...editingItem, kode_sub_kegiatan: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Kode Belanja" value={editingItem.kode_belanja} onChange={e => setEditingItem({...editingItem, kode_belanja: e.target.value})} />
-                <input className="border p-2 rounded" placeholder="Uraian" value={editingItem.belanja} onChange={e => setEditingItem({...editingItem, belanja: e.target.value})} />
-                <input className="border p-2 rounded" type="text" placeholder="Anggaran" value={editingItem.anggaran ? formatIDR(editingItem.anggaran) : ''} onChange={e => setEditingItem({...editingItem, anggaran: parseNumber(e.target.value)})} />
-                <input className="border p-2 rounded" type="text" placeholder="Pagu SPD" value={editingItem.pagu_spd ? formatIDR(editingItem.pagu_spd) : ''} onChange={e => setEditingItem({...editingItem, pagu_spd: parseNumber(e.target.value)})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="SKPD" value={editingItem.skpd} onChange={e => setEditingItem({...editingItem, skpd: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Kode SKPD" value={editingItem.kode_skpd} onChange={e => setEditingItem({...editingItem, kode_skpd: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg col-span-2 outline-none focus:border-emerald-500" placeholder="Kegiatan" value={editingItem.kegiatan} onChange={e => setEditingItem({...editingItem, kegiatan: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Kode Kegiatan" value={editingItem.kode_kegiatan} onChange={e => setEditingItem({...editingItem, kode_kegiatan: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Sub Kegiatan" value={editingItem.sub_kegiatan} onChange={e => setEditingItem({...editingItem, sub_kegiatan: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Kode Sub Kegiatan" value={editingItem.kode_sub_kegiatan} onChange={e => setEditingItem({...editingItem, kode_sub_kegiatan: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Kode Belanja" value={editingItem.kode_belanja} onChange={e => setEditingItem({...editingItem, kode_belanja: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" placeholder="Uraian" value={editingItem.belanja} onChange={e => setEditingItem({...editingItem, belanja: e.target.value})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" type="text" placeholder="Anggaran" value={editingItem.anggaran ? formatIDR(editingItem.anggaran) : ''} onChange={e => setEditingItem({...editingItem, anggaran: parseNumber(e.target.value)})} />
+                <input className="bg-slate-800 border border-slate-700 text-white p-2.5 rounded-lg outline-none focus:border-emerald-500" type="text" placeholder="Pagu SPD" value={editingItem.pagu_spd ? formatIDR(editingItem.pagu_spd) : ''} onChange={e => setEditingItem({...editingItem, pagu_spd: parseNumber(e.target.value)})} />
               </div>
-              <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                <Save size={18} /> Simpan
+              <button type="submit" className="w-full bg-[#064e3b] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#047857] transition-all shadow-lg shadow-emerald-950 border border-emerald-600/40">
+                <Save size={18} /> Simpan Perubahan
               </button>
             </form>
           </div>
@@ -176,67 +176,71 @@ const MasterDataPage: React.FC<Props> = ({ data, setData, replaceData, deleteRow
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>
-          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm"><Upload size={18} /> Import Master</button>
-          <button onClick={clearAllData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors shadow-sm"><Trash2 size={18} /> Hapus Semua</button>
+          <button onClick={() => fileInputRef.current?.click()} className="bg-[#064e3b] text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-[#047857] transition-all shadow-sm border border-emerald-600/40 font-medium text-sm">
+            <Upload size={18} /> Import Master
+          </button>
+          <button onClick={clearAllData} className="text-rose-200 bg-[#4c0519] border border-[#881337]/60 px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-[#5c0617] transition-all shadow-sm font-medium text-sm">
+            <Trash2 size={18} /> Hapus Semua
+          </button>
         </div>
         <div className="flex gap-4">
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Baris</p>
-            <p className="text-sm font-bold text-gray-900">{data.length}</p>
+          <div className="bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Baris</p>
+            <p className="text-sm font-bold text-white">{data.length}</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Anggaran</p>
-            <p className="text-sm font-bold text-indigo-600">{formatIDR(data.reduce((acc, curr) => acc + (curr.anggaran || 0), 0))}</p>
+          <div className="bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Anggaran</p>
+            <p className="text-sm font-bold text-emerald-400">{formatIDR(data.reduce((acc, curr) => acc + (curr.anggaran || 0), 0))}</p>
           </div>
         </div>
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input type="text" placeholder="Cari master..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-400 rounded-xl outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm" />
         </div>
       </div>
 
       {importStatus && (
-        <div className={`p-4 rounded-lg text-sm font-medium ${importStatus.includes('Berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`p-4 rounded-xl text-sm font-medium border ${importStatus.includes('Berhasil') ? 'bg-[#064e3b]/50 text-emerald-200 border-emerald-700/60' : 'bg-[#4c0519]/50 text-rose-200 border-[#881337]/60'}`}>
           <AlertCircle size={18} className="inline mr-2" /> {importStatus}
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="bg-slate-800 rounded-2xl shadow-sm border border-slate-700 overflow-hidden overflow-x-auto">
         <table className="w-full text-left min-w-[1200px]">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Uraian</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Anggaran</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Pagu SPD</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Aksi</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">SKPD</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Program</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Sub Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Sub Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Belanja</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Uraian</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Anggaran</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Pagu SPD</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-700 text-slate-200">
             {filteredData.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
+              <tr key={row.id} className="hover:bg-slate-700/50 transition-colors">
                 <td className="px-4 py-3">
-                  <div className="flex gap-1">
-                    <button onClick={() => setEditingItem(row)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={14} /></button>
-                    <button onClick={() => handleDeleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => setEditingItem(row)} className="p-1.5 text-emerald-400 hover:bg-[#064e3b]/50 rounded-lg transition-colors"><Pencil size={14} /></button>
+                    <button onClick={() => handleDeleteRow(row.id)} className="p-1.5 text-rose-400 hover:bg-[#4c0519]/50 rounded-lg transition-colors"><Trash2 size={14} /></button>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_kegiatan}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.sub_kegiatan}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
-                <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
-                <td className="px-4 py-3 text-sm font-bold text-right">{formatIDR(row.anggaran)}</td>
-                <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">{formatIDR(row.pagu_spd)}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[150px] text-slate-300">{row.skpd}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.program}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_kegiatan}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.sub_kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_sub_kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_belanja}</td>
+                <td className="px-4 py-3 text-sm font-bold text-emerald-300 truncate max-w-[200px]">{row.belanja}</td>
+                <td className="px-4 py-3 text-sm font-bold text-white text-right">{formatIDR(row.anggaran)}</td>
+                <td className="px-4 py-3 text-sm font-bold text-right text-emerald-400">{formatIDR(row.pagu_spd)}</td>
               </tr>
             ))}
           </tbody>

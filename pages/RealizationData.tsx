@@ -346,36 +346,40 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".xlsx, .xls"/>
-          <button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition-colors shadow-sm">
+          <button onClick={() => setShowForm(!showForm)} className="bg-[#064e3b] text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-[#047857] transition-all shadow-sm border border-emerald-600/40 font-medium text-sm">
             <Plus size={18} /> {showForm ? 'Tutup Form' : 'Input Manual'}
           </button>
-          <button onClick={() => fileInputRef.current?.click()} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm"><Upload size={18} /> Import Realisasi</button>
-          <button onClick={clearData} className="text-red-600 bg-red-50 border border-red-100 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors shadow-sm"><Trash2 size={18} /> Hapus Semua</button>
+          <button onClick={() => fileInputRef.current?.click()} className="bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-slate-700 transition-all shadow-sm font-medium text-sm">
+            <Upload size={18} /> Import Realisasi
+          </button>
+          <button onClick={clearData} className="text-rose-200 bg-[#4c0519] border border-[#881337]/60 px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-[#5c0617] transition-all shadow-sm font-medium text-sm">
+            <Trash2 size={18} /> Hapus Semua
+          </button>
         </div>
         <div className="flex gap-4">
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Baris</p>
-            <p className="text-sm font-bold text-gray-900">{data.length}</p>
+          <div className="bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Baris</p>
+            <p className="text-sm font-bold text-white">{data.length}</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Realisasi</p>
-            <p className="text-sm font-bold text-emerald-600">{formatIDR(data.reduce((acc, curr) => acc + (curr.realisasi || 0), 0))}</p>
+          <div className="bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Realisasi</p>
+            <p className="text-sm font-bold text-emerald-400">{formatIDR(data.reduce((acc, curr) => acc + (curr.realisasi || 0), 0))}</p>
           </div>
         </div>
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input type="text" placeholder="Cari realisasi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-400 rounded-xl outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm" />
         </div>
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 animate-in slide-in-from-top duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              {editingId ? <Edit2 className="text-indigo-600" size={20} /> : <Plus className="text-emerald-600" size={20} />}
+        <div className="bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-700 animate-in slide-in-from-top duration-300">
+          <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              {editingId ? <Edit2 className="text-emerald-400" size={20} /> : <Plus className="text-emerald-400" size={20} />}
               {editingId ? 'Edit Realisasi' : 'Input Realisasi Manual'}
             </h3>
-            <button onClick={cancelEdit} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+            <button onClick={cancelEdit} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
               <CloseIcon size={20} />
             </button>
           </div>
@@ -392,12 +396,12 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </div>
 
             <div className="lg:col-span-2 space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kode Sub Kegiatan</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kode Sub Kegiatan</label>
               <input 
                 type="text" 
                 value={formData.kode_sub_kegiatan}
                 readOnly
-                className="w-full p-2 border rounded-xl text-sm bg-gray-100 text-gray-500 outline-none"
+                className="w-full p-2.5 border border-slate-700 rounded-xl text-sm bg-slate-800/60 text-slate-400 outline-none font-mono"
                 placeholder="Otomatis..."
               />
             </div>
@@ -414,48 +418,48 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             </div>
 
             <div className="lg:col-span-3 space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tanggal Realisasi</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal Realisasi</label>
               <input 
                 type="date" 
                 value={formData.tanggal}
                 onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
-                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-700"
+                className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 font-medium text-white"
               />
             </div>
 
             <div className="lg:col-span-4 space-y-1">
               <div className="flex items-center gap-3">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Realisasi</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jumlah Realisasi</label>
                 {formData.sub_kegiatan && (
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${currentSisa <= 0 ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-600'}`}>
+                  <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${currentSisa <= 0 ? 'bg-[#4c0519] text-rose-300 border border-rose-900' : 'bg-[#064e3b] text-emerald-300 border border-emerald-800'}`}>
                     {sisaSpd.showSpecific ? 'Sisa Akun:' : 'Total Sisa Sub:'} Rp {formatIDR(currentSisa)}
                   </span>
                 )}
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
                 <input 
                   type="text" 
                   value={formData.realisasi ? formatIDR(formData.realisasi) : ''}
                   onChange={(e) => setFormData({...formData, realisasi: parseNumber(e.target.value)})}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 font-bold ${formData.realisasi > currentSisa ? 'border-red-300 bg-red-50 text-red-600 focus:ring-red-500' : 'focus:ring-indigo-500 text-emerald-600'}`}
+                  className={`w-full pl-10 pr-4 py-2.5 bg-slate-800 border rounded-xl text-sm outline-none font-bold transition-all ${formData.realisasi > currentSisa ? 'border-rose-500/80 bg-[#4c0519]/30 text-rose-300 focus:border-rose-500' : 'border-slate-700 focus:border-emerald-500 text-emerald-400'}`}
                   placeholder="0"
                 />
               </div>
               {formData.realisasi > currentSisa && currentSisa > 0 && (
-                <p className="text-[9px] text-red-500 font-bold italic mt-1 flex items-center gap-1">
+                <p className="text-[9px] text-rose-400 font-bold italic mt-1 flex items-center gap-1">
                   <AlertCircle size={10} /> Melebihi sisa SPD!
                 </p>
               )}
             </div>
 
             <div className="lg:col-span-5 space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Keterangan Dokumen</label>
               <input 
                 type="text" 
                 value={formData.keterangan_dokumen}
                 onChange={(e) => setFormData({...formData, keterangan_dokumen: e.target.value})}
-                className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50"
+                className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 text-white placeholder-slate-500"
                 placeholder="Contoh: SP2D No. XXX / Kuitansi No. YYY"
               />
             </div>
@@ -463,7 +467,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
             <div className="lg:col-span-3">
               <button 
                 type="submit"
-                className="w-full bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all"
+                className="w-full bg-[#064e3b] text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#047857] shadow-lg shadow-emerald-950 border border-emerald-600/40 transition-all text-sm"
               >
                 <Save size={18} /> Simpan Realisasi
               </button>
@@ -473,7 +477,7 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
       )}
 
       {importStatus && (
-        <div className={`p-4 rounded-lg text-sm font-medium ${importStatus.includes('Berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`p-4 rounded-xl text-sm font-medium border ${importStatus.includes('Berhasil') ? 'bg-[#064e3b]/50 text-emerald-200 border-emerald-700/60' : 'bg-[#4c0519]/50 text-rose-200 border-[#881337]/60'}`}>
           <AlertCircle size={18} className="inline mr-2" /> {importStatus}
         </div>
       )}
@@ -482,33 +486,33 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
         <div 
           ref={topScrollRef}
           onScroll={handleTopScroll}
-          className="overflow-x-auto h-5 bg-gray-50/50 rounded-t-xl border border-b-0 border-gray-200"
+          className="overflow-x-auto h-5 bg-slate-900/60 rounded-t-xl border border-b-0 border-slate-700"
         >
           <div className="min-w-[1500px] h-1"></div>
         </div>
         <div 
           ref={tableRef}
           onScroll={handleTableScroll}
-          className="bg-white rounded-b-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto relative"
+          className="bg-slate-800 rounded-b-xl shadow-sm border border-slate-700 overflow-hidden overflow-x-auto relative"
         >
           <table className="w-full text-left min-w-[1500px]">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Aksi</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Tanggal</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">SKPD</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Program</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Sub Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Sub Kegiatan</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Kode Belanja</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Belanja</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Realisasi</th>
-              <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Keterangan Dokumen</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Aksi</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Tanggal</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">SKPD</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Program</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Sub Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Sub Kegiatan</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Kode Belanja</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Belanja</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase text-right">Realisasi</th>
+              <th className="px-4 py-3.5 text-xs font-bold text-slate-300 uppercase">Keterangan Dokumen</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-700 text-slate-200">
             {data.filter(i => {
               const q = searchTerm.toLowerCase().trim();
               if (!q) return true;
@@ -527,24 +531,24 @@ const RealizationDataPage: React.FC<Props> = ({ data, setData, replaceData, dele
                 (i.nomor_sp2d && i.nomor_sp2d.toLowerCase().includes(q))
               );
             }).map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
+              <tr key={row.id} className="hover:bg-slate-700/50 transition-colors">
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => startEdit(row)} className="p-1 text-indigo-600 hover:bg-indigo-50 rounded" title="Edit"><Edit2 size={14} /></button>
-                    <button onClick={() => handleDeleteRow(row.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Hapus"><Trash2 size={14} /></button>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={() => startEdit(row)} className="p-1.5 text-emerald-400 hover:bg-[#064e3b]/50 rounded-lg transition-colors" title="Edit"><Edit2 size={14} /></button>
+                    <button onClick={() => handleDeleteRow(row.id)} className="p-1.5 text-rose-400 hover:bg-[#4c0519]/50 rounded-lg transition-colors" title="Hapus"><Trash2 size={14} /></button>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm font-medium text-indigo-900 whitespace-nowrap">{formatDateIndo(row.tanggal || '')}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[150px]">{row.skpd}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.program}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_kegiatan}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.kegiatan}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_sub_kegiatan}</td>
-                <td className="px-4 py-3 text-sm truncate max-w-[200px]">{row.sub_kegiatan}</td>
-                <td className="px-4 py-3 text-sm font-mono">{row.kode_belanja}</td>
-                <td className="px-4 py-3 text-sm font-bold text-indigo-700 truncate max-w-[200px]">{row.belanja}</td>
-                <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600">{formatIDR(row.realisasi)}</td>
-                <td className="px-4 py-3 text-sm text-gray-600 italic truncate max-w-[250px]">{row.keterangan_dokumen || '-'}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-emerald-300 whitespace-nowrap">{formatDateIndo(row.tanggal || '')}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[150px] text-slate-300">{row.skpd}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.program}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_kegiatan}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_sub_kegiatan}</td>
+                <td className="px-4 py-3 text-sm truncate max-w-[200px] text-slate-300">{row.sub_kegiatan}</td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-400">{row.kode_belanja}</td>
+                <td className="px-4 py-3 text-sm font-bold text-emerald-300 truncate max-w-[200px]">{row.belanja}</td>
+                <td className="px-4 py-3 text-sm font-bold text-right text-emerald-400">{formatIDR(row.realisasi)}</td>
+                <td className="px-4 py-3 text-sm text-slate-300 italic truncate max-w-[250px]">{row.keterangan_dokumen || '-'}</td>
               </tr>
             ))}
           </tbody>

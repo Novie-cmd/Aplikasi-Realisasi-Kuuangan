@@ -39,39 +39,39 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
 
   return (
     <div className="relative space-y-1" ref={containerRef}>
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
         {label}
       </label>
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 cursor-pointer flex items-center justify-between"
+        className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none focus:border-emerald-500 cursor-pointer flex items-center justify-between transition-colors"
       >
-        <span className={(!value || value === 'all') ? 'text-gray-400' : 'text-gray-900 font-medium truncate'}>
+        <span className={(!value || value === 'all') ? 'text-slate-400' : 'text-slate-100 font-medium truncate'}>
           {selectedLabel}
         </span>
-        <ChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && (
-        <div className="absolute z-[100] mt-1 w-full bg-white border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-          <div className="p-2 border-b bg-gray-50 flex items-center gap-2">
-            <Search size={14} className="text-gray-400" />
+        <div className="absolute z-[100] mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="p-2 border-b border-slate-800 bg-slate-950 flex items-center gap-2">
+            <Search size={14} className="text-slate-400" />
             <input
               autoFocus
               type="text"
               placeholder="Ketik untuk mencari..."
-              className="w-full bg-transparent text-sm outline-none"
+              className="w-full bg-transparent text-sm text-white placeholder-slate-400 outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onClick={(e) => e.stopPropagation()}
             />
             {searchTerm && (
               <button onClick={(e) => { e.stopPropagation(); setSearchTerm(''); }}>
-                <X size={14} className="text-gray-400 hover:text-gray-600" />
+                <X size={14} className="text-slate-400 hover:text-white" />
               </button>
             )}
           </div>
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto divide-y divide-slate-800">
             {showAll && (
               <div
                 onClick={() => {
@@ -79,10 +79,10 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
                   setIsOpen(false);
                   setSearchTerm('');
                 }}
-                className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-indigo-50 ${value === 'all' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-gray-700'}`}
+                className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors ${value === 'all' ? 'bg-[#064e3b]/40 text-emerald-300 font-bold' : 'text-slate-300 hover:bg-slate-800'}`}
               >
                 Semua {label}
-                {value === 'all' && <Check size={14} />}
+                {value === 'all' && <Check size={14} className="text-emerald-400" />}
               </div>
             )}
             {filteredOptions.length > 0 ? (
@@ -94,14 +94,14 @@ const SearchableSelect: React.FC<Props> = ({ options, value, onChange, placehold
                     setIsOpen(false);
                     setSearchTerm('');
                   }}
-                  className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-indigo-50 ${value === option ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-gray-700'}`}
+                  className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors ${value === option ? 'bg-[#064e3b]/40 text-emerald-300 font-bold' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
                   <span className="truncate">{option}</span>
-                  {value === option && <Check size={14} />}
+                  {value === option && <Check size={14} className="text-emerald-400" />}
                 </div>
               ))
             ) : (
-              <div className="px-4 py-3 text-xs text-gray-400 text-center italic">
+              <div className="px-4 py-3 text-xs text-slate-500 text-center italic">
                 Tidak ada hasil ditemukan
               </div>
             )}

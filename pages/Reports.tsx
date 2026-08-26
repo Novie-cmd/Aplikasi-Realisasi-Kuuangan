@@ -606,13 +606,13 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
         }
       `}</style>
       {/* Tab Switcher */}
-      <div className="flex bg-gray-100 p-1.5 rounded-2xl border w-fit print:hidden overflow-x-auto max-w-full gap-1">
+      <div className="flex bg-slate-900 p-1.5 rounded-2xl border border-slate-700 w-fit print:hidden overflow-x-auto max-w-full gap-1 shadow-md">
         <button
           onClick={() => setReportType('apbd')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'apbd'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-[#064e3b] text-white shadow-md border border-emerald-600/40'
+              : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <FileSpreadsheet size={16} />
@@ -622,8 +622,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           onClick={() => setReportType('bulanan')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'bulanan'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-[#064e3b] text-white shadow-md border border-emerald-600/40'
+              : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <Calendar size={16} />
@@ -633,8 +633,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           onClick={() => setReportType('triwulan')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'triwulan'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-[#064e3b] text-white shadow-md border border-emerald-600/40'
+              : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <PieChart size={16} />
@@ -644,8 +644,8 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
           onClick={() => setReportType('hibah')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase transition-all whitespace-nowrap ${
             reportType === 'hibah'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-[#064e3b] text-white shadow-md border border-emerald-600/40'
+              : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <Gift size={16} />
@@ -671,56 +671,56 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       {/* Header Statistics & Info */}
       {reportType === 'apbd' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Database size={20} /></div>
+          <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-slate-700 text-slate-200 rounded-lg"><Database size={20} /></div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase">Master Budget Lines</p>
-              <p className="text-xl font-black">{masterData.length}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Master Budget Lines</p>
+              <p className="text-xl font-black text-white">{masterData.length}</p>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><Database size={20} /></div>
+          <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-[#064e3b] text-emerald-300 rounded-lg"><Database size={20} /></div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase">Transaksi Realisasi</p>
-              <p className="text-xl font-black">{realizationData.length}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Transaksi Realisasi</p>
+              <p className="text-xl font-black text-emerald-400">{realizationData.length}</p>
             </div>
           </div>
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><Info size={20} /></div>
-            <p className="text-[10px] text-amber-800 leading-tight font-medium">
-              Sistem mencocokkan data berdasarkan <b>Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
+          <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-slate-700 text-emerald-400 rounded-lg"><Info size={20} /></div>
+            <p className="text-[10px] text-slate-300 leading-tight font-medium">
+              Sistem mencocokkan data berdasarkan <b className="text-white">Kode SKPD + Kode Program + Kode Kegiatan + Kode Sub Kegiatan + Kode Belanja</b>. Pastikan kolom ini sama persis di kedua file.
             </p>
           </div>
         </div>
       )}
 
       {reportType === 'apbd' && validationAlerts.count > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm animate-in slide-in-from-top duration-500 print:hidden">
+        <div className="bg-[#4c0519]/70 border-l-4 border-rose-500 p-4 rounded-r-xl shadow-sm animate-in slide-in-from-top duration-500 print:hidden border border-[#881337]/50">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-red-100 text-red-600 rounded-full">
+            <div className="p-2 bg-[#881337] text-rose-200 rounded-full">
               <AlertTriangle size={20} />
             </div>
             <div>
-              <h4 className="text-sm font-black text-red-800 uppercase tracking-tight">Peringatan Validasi Anggaran APBD</h4>
-              <p className="text-xs text-red-700 mt-1">
+              <h4 className="text-sm font-black text-rose-200 uppercase tracking-tight">Peringatan Validasi Anggaran APBD</h4>
+              <p className="text-xs text-rose-100 mt-1">
                 Ditemukan <b>{validationAlerts.count} item</b> dengan realisasi yang <b>melampaui Pagu SPD</b>. 
-                Total kelebihan realisasi: <span className="font-bold underline">{formatIDR(validationAlerts.totalOver)}</span>
+                Total kelebihan realisasi: <span className="font-bold underline text-white">{formatIDR(validationAlerts.totalOver)}</span>
               </p>
-              <p className="text-[10px] text-red-600 mt-2 italic">* Segera periksa data master atau transaksi realisasi untuk menyesuaikan pagu.</p>
+              <p className="text-[10px] text-rose-300 mt-2 italic">* Segera periksa data master atau transaksi realisasi untuk menyesuaikan pagu.</p>
             </div>
           </div>
         </div>
       )}
 
       {reportType === 'apbd' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4 print:hidden">
+        <div className="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4 print:hidden">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border overflow-x-auto no-scrollbar">
+            <div className="flex gap-2 p-1 bg-slate-900 rounded-xl border border-slate-700 overflow-x-auto no-scrollbar">
               {['bidang', 'program', 'kegiatan', 'sub_kegiatan'].map((l) => (
                 <button 
                   key={l} 
                   onClick={() => setLevel(l as any)} 
-                  className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all whitespace-nowrap ${level === l ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all whitespace-nowrap ${level === l ? 'bg-[#064e3b] text-white shadow-sm border border-emerald-600/40' : 'text-slate-400 hover:text-slate-200'}`}
                 >
                   {l.replace('_', ' ')}
                 </button>
@@ -728,25 +728,25 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </div>
             <div className="flex items-center gap-3 flex-1 max-w-2xl">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                   type="text" 
                   placeholder="Cari Nama / Uraian / Kode / SKPD..." 
                   value={searchTerm} 
                   onChange={(e) => setSearchTerm(e.target.value)} 
-                  className="w-full pl-10 pr-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm" 
+                  className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 text-white placeholder-slate-400 rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 text-sm" 
                 />
               </div>
               <button 
                 onClick={handleExportApbdExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+                className="flex items-center gap-2 px-4 py-2 bg-[#064e3b] text-white rounded-xl font-bold text-sm hover:bg-[#047857] transition-colors shadow-lg shadow-emerald-950 border border-emerald-600/40"
               >
                 <Download size={18} />
                 <span>Excel</span>
               </button>
               <button 
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl font-bold text-sm hover:bg-slate-600 transition-colors border border-slate-600"
               >
                 <Printer size={18} />
                 <span>Cetak</span>
@@ -754,7 +754,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50 print:hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-700 print:hidden">
             <SearchableSelect 
               label="Sub Kegiatan"
               options={subKegiatanList}
@@ -771,65 +771,65 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             />
           </div>
 
-          <div className="pt-4 border-t border-gray-100 flex flex-wrap items-end gap-4 print:hidden">
+          <div className="pt-4 border-t border-slate-700 flex flex-wrap items-end gap-4 print:hidden">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Dari Tanggal</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Dari Tanggal</label>
               <input 
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="p-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-750"
+                className="p-2 border border-slate-700 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-900 font-medium text-white"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">S.d Tanggal</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">S.d Tanggal</label>
               <input 
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="p-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50 font-medium text-gray-750"
+                className="p-2 border border-slate-700 rounded-xl text-xs outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-900 font-medium text-white"
               />
             </div>
             
             <div className="flex flex-wrap gap-1.5 items-center">
               <button 
                 onClick={() => { setStartDate(''); setEndDate(''); }}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'semua' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'semua' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Semua
               </button>
               <button 
                 type="button"
                 onClick={setPresetBulanIni}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'bulan_ini' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'bulan_ini' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Bulan Ini
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(1)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_1' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_1' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Triwulan I
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(2)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_2' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_2' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Triwulan II
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(3)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_3' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_3' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Triwulan III
               </button>
               <button 
                 type="button"
                 onClick={() => setPresetTriwulan(4)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_4' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-750 hover:bg-gray-50'}`}
+                className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${activePreset === 'triwulan_4' ? 'bg-[#064e3b] text-white border-emerald-600 shadow-md shadow-emerald-950' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800'}`}
               >
                 Triwulan IV
               </button>
@@ -839,7 +839,7 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       )}
 
       {reportType === 'apbd' && (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-x-auto overflow-y-auto max-h-[72vh] relative print:max-h-none print:overflow-visible print:shadow-none print:border-none">
+        <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-x-auto overflow-y-auto max-h-[72vh] relative print:max-h-none print:overflow-visible print:shadow-none print:border-none">
           <div className="hidden print:block mb-6 text-center">
             <h1 className="text-2xl font-black uppercase tracking-tight">Laporan Realisasi Keuangan</h1>
             <p className="text-sm text-gray-500 mt-1">Level Laporan: {level.replace('_', ' ').toUpperCase()}</p>
@@ -857,22 +857,22 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
             </div>
           </div>
           <table className="w-full text-left min-w-[1250px] print:min-w-0 print:text-[10px] border-collapse">
-            <thead className="bg-gray-50/95 backdrop-blur-xs border-b border-gray-200 sticky top-0 z-20 shadow-xs">
+            <thead className="bg-slate-900 border-b border-slate-700 sticky top-0 z-20 shadow-sm">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 left-0 bg-gray-100 z-30 shadow-xs">SKPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest sticky top-0 left-0 bg-slate-900 z-30 shadow-sm">SKPD</th>
                 {level === 'sub_kegiatan' && (
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20">Kode SubKeg</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest sticky top-0 bg-slate-900 z-20">Kode SubKeg</th>
                 )}
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky top-0 bg-gray-50 z-20 min-w-[220px]">Uraian / Kode</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Anggaran</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">SPD</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Realisasi</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa SPD</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right sticky top-0 bg-gray-50 z-20">Sisa Anggaran</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center sticky top-0 bg-gray-50 z-20">%</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest sticky top-0 bg-slate-900 z-20 min-w-[220px]">Uraian / Kode</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right sticky top-0 bg-slate-900 z-20">Anggaran</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right sticky top-0 bg-slate-900 z-20">SPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right sticky top-0 bg-slate-900 z-20">Realisasi</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right sticky top-0 bg-slate-900 z-20">Sisa SPD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-right sticky top-0 bg-slate-900 z-20">Sisa Anggaran</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest text-center sticky top-0 bg-slate-900 z-20">%</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-slate-700 text-slate-200">
               {reportData.map((row, idx) => {
                 const sisaSpd = row.pagu_spd - row.realisasi;
                 const sisaAnggaran = row.anggaran - row.realisasi;
@@ -880,45 +880,45 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 const percent = row.anggaran > 0 ? (row.realisasi / row.anggaran) * 100 : 0;
                 
                 return (
-                  <tr key={idx} className={`hover:bg-gray-50 transition-colors group ${row.isUnmapped ? 'bg-red-50/30' : isOverSpd ? 'bg-orange-50/50' : ''}`}>
-                    <td className="px-6 py-4 text-xs font-bold text-gray-600 sticky left-0 bg-white group-hover:bg-gray-50 z-10 shadow-xs">{row.skpd}</td>
+                  <tr key={idx} className={`hover:bg-slate-700/50 transition-colors group ${row.isUnmapped ? 'bg-[#4c0519]/30' : isOverSpd ? 'bg-amber-950/30' : ''}`}>
+                    <td className="px-6 py-4 text-xs font-bold text-slate-300 sticky left-0 bg-slate-800 group-hover:bg-slate-700/70 z-10 shadow-sm">{row.skpd}</td>
                     {level === 'sub_kegiatan' && (
-                      <td className="px-6 py-4 text-[10px] font-mono text-amber-600 font-bold">{row.kode_sub_kegiatan || '-'}</td>
+                      <td className="px-6 py-4 text-[10px] font-mono text-emerald-400 font-bold">{row.kode_sub_kegiatan || '-'}</td>
                     )}
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[10px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{row.kode}</span>
-                          {row.isUnmapped && <span className="bg-red-100 text-red-700 text-[8px] px-1 rounded font-bold uppercase flex items-center gap-1"><AlertTriangle size={8}/> Anomali</span>}
-                          {isOverSpd && <span className="bg-orange-100 text-orange-700 text-[8px] px-1 rounded font-bold uppercase flex items-center gap-1"><AlertCircle size={8}/> Melampaui SPD</span>}
+                          <span className="text-[10px] font-mono text-emerald-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700 font-bold">{row.kode}</span>
+                          {row.isUnmapped && <span className="bg-[#4c0519] text-rose-300 border border-rose-900 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase flex items-center gap-1"><AlertTriangle size={8}/> Anomali</span>}
+                          {isOverSpd && <span className="bg-amber-900/60 text-amber-300 border border-amber-800 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase flex items-center gap-1"><AlertCircle size={8}/> Melampaui SPD</span>}
                         </div>
-                        <p className="text-sm font-bold text-gray-800 leading-tight">{row.name}</p>
-                        {row.parentName && <p className="text-[9px] text-gray-400 mt-1 uppercase font-medium">{row.parentName}</p>}
+                        <p className="text-sm font-bold text-white leading-tight">{row.name}</p>
+                        {row.parentName && <p className="text-[9px] text-slate-400 mt-1 uppercase font-medium">{row.parentName}</p>}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-right text-gray-700">{formatIDR(row.anggaran)}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">{formatIDR(row.pagu_spd)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-right text-white">Rp {formatIDR(row.anggaran)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-right text-emerald-400">Rp {formatIDR(row.pagu_spd)}</td>
                     <td className="px-6 py-4 text-sm font-bold text-right">
                       <button 
                         onClick={() => setDetailView({ key: row.key, name: row.name, level })}
-                        className="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded transition-colors flex items-center gap-1 ml-auto group"
+                        className="text-emerald-400 hover:bg-[#064e3b]/50 px-2 py-1 rounded transition-colors flex items-center gap-1 ml-auto group"
                         title="Klik untuk lihat rincian"
                       >
-                        {formatIDR(row.realisasi)}
+                        Rp {formatIDR(row.realisasi)}
                         <Eye size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     </td>
-                    <td className={`px-6 py-4 text-sm font-bold text-right ${sisaSpd < 0 ? 'text-red-600 bg-red-50' : 'text-amber-600'}`}>{formatIDR(sisaSpd)}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-right text-red-500">{formatIDR(sisaAnggaran)}</td>
+                    <td className={`px-6 py-4 text-sm font-bold text-right ${sisaSpd < 0 ? 'text-rose-400 bg-[#4c0519]/30' : 'text-slate-300'}`}>Rp {formatIDR(sisaSpd)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-right text-rose-400">Rp {formatIDR(sisaAnggaran)}</td>
                     <td className="px-6 py-4 text-center print:px-2">
                       <div className="flex flex-col items-center gap-1">
-                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden print:hidden">
+                        <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden print:hidden">
                           <div 
-                            className={`h-full transition-all duration-1000 ${percent >= 100 ? 'bg-emerald-500' : percent >= 80 ? 'bg-indigo-500' : 'bg-amber-500'}`} 
+                            className={`h-full transition-all duration-1000 ${percent >= 100 ? 'bg-[#064e3b]' : percent >= 80 ? 'bg-emerald-500' : 'bg-slate-500'}`} 
                             style={{ width: `${Math.min(100, percent)}%` }}
                           ></div>
                         </div>
-                        <span className="text-[10px] font-black text-gray-600">{percent.toFixed(1)}%</span>
+                        <span className="text-[10px] font-black text-slate-300">{percent.toFixed(1)}%</span>
                       </div>
                     </td>
                   </tr>
@@ -926,15 +926,15 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
               })}
               
               {/* Table Footer / Total */}
-              <tr className="bg-gray-900 text-white font-black sticky bottom-0 z-20 shadow-md">
-                <td className="px-6 py-5 text-sm uppercase tracking-widest sticky bottom-0 left-0 bg-gray-900 z-30 shadow-md" colSpan={level === 'sub_kegiatan' ? 3 : 2}>Total Seluruhnya</td>
-                <td className="px-6 py-5 text-sm text-right sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran)}</td>
-                <td className="px-6 py-5 text-sm text-right text-blue-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.spd)}</td>
-                <td className="px-6 py-5 text-sm text-right text-emerald-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.realisasi)}</td>
-                <td className="px-6 py-5 text-sm text-right text-amber-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.spd - totals.realisasi)}</td>
-                <td className="px-6 py-5 text-sm text-right text-red-300 sticky bottom-0 bg-gray-900">{formatIDR(totals.anggaran - totals.realisasi)}</td>
-                <td className="px-6 py-5 text-center sticky bottom-0 bg-gray-900">
-                  <span className="text-xl font-black">
+              <tr className="bg-slate-900 text-white font-black sticky bottom-0 z-20 shadow-md">
+                <td className="px-6 py-5 text-sm uppercase tracking-widest sticky bottom-0 left-0 bg-slate-900 z-30 shadow-md" colSpan={level === 'sub_kegiatan' ? 3 : 2}>Total Seluruhnya</td>
+                <td className="px-6 py-5 text-sm text-right sticky bottom-0 bg-slate-900">Rp {formatIDR(totals.anggaran)}</td>
+                <td className="px-6 py-5 text-sm text-right text-emerald-400 sticky bottom-0 bg-slate-900">Rp {formatIDR(totals.spd)}</td>
+                <td className="px-6 py-5 text-sm text-right text-emerald-400 sticky bottom-0 bg-slate-900">Rp {formatIDR(totals.realisasi)}</td>
+                <td className="px-6 py-5 text-sm text-right text-slate-300 sticky bottom-0 bg-slate-900">Rp {formatIDR(totals.spd - totals.realisasi)}</td>
+                <td className="px-6 py-5 text-sm text-right text-rose-400 sticky bottom-0 bg-slate-900">Rp {formatIDR(totals.anggaran - totals.realisasi)}</td>
+                <td className="px-6 py-5 text-center sticky bottom-0 bg-slate-900">
+                  <span className="text-xl font-black text-emerald-300">
                     {totals.anggaran > 0 ? ((totals.realisasi / totals.anggaran) * 100).toFixed(1) : 0}%
                   </span>
                 </td>
@@ -947,24 +947,24 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
       {/* Detail Modal */}
       <AnimatePresence>
         {detailView && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white w-full max-w-4xl max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+              className="bg-slate-900 w-full max-w-4xl max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700"
             >
-              <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800">
                 <div>
-                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                    <List className="text-indigo-600" size={20} />
+                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <List className="text-emerald-400" size={20} />
                     Rincian Transaksi Realisasi
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 font-medium">{detailView.name}</p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">{detailView.name}</p>
                 </div>
                 <button 
                   onClick={() => setDetailView(null)}
-                  className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                  className="p-2 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -974,34 +974,34 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                 {filteredDetails.length > 0 ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Total Realisasi</p>
-                        <p className="text-xl font-black text-emerald-700">{formatIDR(filteredDetails.reduce((acc, curr) => acc + curr.realisasi, 0))}</p>
+                      <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Realisasi</p>
+                        <p className="text-xl font-black text-emerald-400">Rp {formatIDR(filteredDetails.reduce((acc, curr) => acc + curr.realisasi, 0))}</p>
                       </div>
-                      <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Jumlah Transaksi</p>
-                        <p className="text-xl font-black text-indigo-700">{filteredDetails.length}</p>
+                      <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jumlah Transaksi</p>
+                        <p className="text-xl font-black text-white">{filteredDetails.length}</p>
                       </div>
                     </div>
 
-                    <div className="border rounded-xl overflow-hidden overflow-x-auto">
+                    <div className="border border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
                       <table className="w-full text-left border-collapse min-w-[500px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-slate-800 text-slate-300">
                           <tr>
-                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">No</th>
-                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Keterangan Dokumen</th>
-                            <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Nilai</th>
+                            <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">No</th>
+                            <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Keterangan Dokumen</th>
+                            <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Nilai</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className="divide-y divide-slate-800 text-slate-200">
                           {filteredDetails.map((item, idx) => (
-                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 text-xs text-gray-400">{idx + 1}</td>
-                              <td className="px-4 py-3 text-sm font-medium text-gray-700 italic">
+                            <tr key={item.id} className="hover:bg-slate-800/60 transition-colors">
+                              <td className="px-4 py-3 text-xs text-slate-400">{idx + 1}</td>
+                              <td className="px-4 py-3 text-sm font-medium text-slate-200 italic">
                                 {item.keterangan_dokumen || '-'}
                               </td>
-                              <td className="px-4 py-3 text-sm font-black text-right text-emerald-600">
-                                {formatIDR(item.realisasi)}
+                              <td className="px-4 py-3 text-sm font-black text-right text-emerald-400">
+                                Rp {formatIDR(item.realisasi)}
                               </td>
                             </tr>
                           ))}
@@ -1010,17 +1010,17 @@ const ReportsPage: React.FC<Props> = ({ masterData, realizationData, hibahData =
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                     <AlertCircle size={48} className="mb-4 opacity-20" />
                     <p className="text-sm font-medium">Tidak ada rincian transaksi ditemukan.</p>
                   </div>
                 )}
               </div>
 
-              <div className="p-4 bg-gray-50 border-t flex justify-end">
+              <div className="p-4 bg-slate-800 border-t border-slate-700 flex justify-end">
                 <button 
                   onClick={() => setDetailView(null)}
-                  className="px-6 py-2 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold text-sm transition-colors border border-slate-600"
                 >
                   Tutup
                 </button>

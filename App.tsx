@@ -595,9 +595,9 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 text-indigo-600">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-950 text-emerald-400">
         <Loader2 className="animate-spin mb-4" size={48} />
-        <p className="font-bold animate-pulse">Memproses...</p>
+        <p className="font-bold text-slate-100 animate-pulse">Memproses Data...</p>
       </div>
     );
   }
@@ -605,26 +605,26 @@ const App: React.FC = () => {
   // Layar Login
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-indigo-950 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-8">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-8 text-slate-100">
           <div className="text-center">
-            <div className="inline-flex p-4 bg-indigo-100 rounded-full text-indigo-600 mb-4">
+            <div className="inline-flex p-4 bg-[#064e3b] rounded-full text-emerald-300 border border-emerald-600/40 mb-4 shadow-lg shadow-emerald-950">
               <CircleDollarSign size={40} />
             </div>
-            <h1 className="text-2xl font-black text-gray-900">FinRealize Sheets</h1>
-            <p className="text-gray-500 text-sm font-medium">Masuk untuk mengelola Google Spreadsheet Anda</p>
+            <h1 className="text-2xl font-black text-white tracking-tight">FinRealize Sheets</h1>
+            <p className="text-slate-400 text-sm font-medium">Masuk untuk mengelola Google Spreadsheet Anda</p>
           </div>
           
           <div className="space-y-6">
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                Aplikasi ini sekarang terhubung ke <b>Google Sheets</b> sebagai basis data tunggal (single source of truth). Data disimpan aman di Google Drive Anda.
+            <div className="p-4 bg-[#4c0519]/30 rounded-xl border border-[#881337]/60">
+              <p className="text-xs text-rose-200 leading-relaxed font-medium">
+                Aplikasi ini sekarang terhubung ke <b>Google Sheets</b> sebagai basis data tunggal (single source of truth). Data tersimpan aman di Google Drive Anda.
               </p>
             </div>
 
             <button 
               onClick={handleLogin}
-              className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-3"
+              className="w-full bg-[#064e3b] text-white py-4 rounded-xl font-bold hover:bg-[#047857] transition-all shadow-lg shadow-emerald-950 flex items-center justify-center gap-3 border border-emerald-600/50"
             >
               <img src="https://www.gstatic.com/firebase/anonymous-scan.png" className="w-6 h-6 hidden" alt="" />
               <User size={20} />
@@ -632,7 +632,7 @@ const App: React.FC = () => {
             </button>
           </div>
           
-          <div className="text-center text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+          <div className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
             Sistem Informasi Realisasi Keuangan v3.0
           </div>
         </div>
@@ -642,44 +642,63 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex bg-slate-900 text-slate-100">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 bg-indigo-950 text-white transition-all duration-300 z-50 print:hidden ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
+        <aside className={`fixed inset-y-0 left-0 bg-slate-950 text-white transition-all duration-300 z-50 border-r border-slate-800 print:hidden ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
           <div className="flex flex-col h-full">
-            <div className="p-6 flex items-center justify-between border-b border-indigo-900">
-              {isSidebarOpen && <h1 className="text-xl font-bold tracking-tight">FinRealize <span className="text-[10px] bg-indigo-500 px-1 rounded">CLOUD</span></h1>}
-              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-indigo-800 rounded">
+            <div className="p-6 flex items-center justify-between border-b border-slate-800">
+              {isSidebarOpen && (
+                <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                  FinRealize <span className="text-[10px] bg-[#064e3b] text-emerald-200 border border-emerald-700 px-1.5 py-0.5 rounded font-mono">CLOUD</span>
+                </h1>
+              )}
+              <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded">
                 {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
             
-            <nav className="flex-1 mt-6 px-4 space-y-2">
-              <button onClick={() => setActivePage('dashboard')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'dashboard' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+            <nav className="flex-1 mt-6 px-3 space-y-2">
+              <button 
+                onClick={() => setActivePage('dashboard')} 
+                className={`w-full flex items-center gap-3.5 p-3 rounded-xl font-medium transition-all ${activePage === 'dashboard' ? 'bg-[#064e3b] text-emerald-100 shadow-md shadow-emerald-950 border border-emerald-600/40' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
+              >
                 <LayoutDashboard size={20} /> {isSidebarOpen && <span>Dashboard</span>}
               </button>
-              <button onClick={() => setActivePage('master')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'master' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+              <button 
+                onClick={() => setActivePage('master')} 
+                className={`w-full flex items-center gap-3.5 p-3 rounded-xl font-medium transition-all ${activePage === 'master' ? 'bg-[#064e3b] text-emerald-100 shadow-md shadow-emerald-950 border border-emerald-600/40' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
+              >
                 <Database size={20} /> {isSidebarOpen && <span>Data Master</span>}
               </button>
-              <button onClick={() => setActivePage('realization')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'realization' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+              <button 
+                onClick={() => setActivePage('realization')} 
+                className={`w-full flex items-center gap-3.5 p-3 rounded-xl font-medium transition-all ${activePage === 'realization' ? 'bg-[#064e3b] text-emerald-100 shadow-md shadow-emerald-950 border border-emerald-600/40' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
+              >
                 <CircleDollarSign size={20} /> {isSidebarOpen && <span>Realisasi</span>}
               </button>
-              <button onClick={() => setActivePage('reports')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'reports' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+              <button 
+                onClick={() => setActivePage('reports')} 
+                className={`w-full flex items-center gap-3.5 p-3 rounded-xl font-medium transition-all ${activePage === 'reports' ? 'bg-[#064e3b] text-emerald-100 shadow-md shadow-emerald-950 border border-emerald-600/40' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
+              >
                 <FileText size={20} /> {isSidebarOpen && <span>Laporan</span>}
               </button>
-              <button onClick={() => setActivePage('spreadsheet')} className={`w-full flex items-center gap-4 p-3 rounded-lg ${activePage === 'spreadsheet' ? 'bg-indigo-600' : 'hover:bg-indigo-900'}`}>
+              <button 
+                onClick={() => setActivePage('spreadsheet')} 
+                className={`w-full flex items-center gap-3.5 p-3 rounded-xl font-medium transition-all ${activePage === 'spreadsheet' ? 'bg-[#064e3b] text-emerald-100 shadow-md shadow-emerald-950 border border-emerald-600/40' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
+              >
                 <FileSpreadsheet size={20} /> {isSidebarOpen && <span>Spreadsheet</span>}
               </button>
             </nav>
             
-            <div className="p-4 border-t border-indigo-900 space-y-4">
+            <div className="p-4 border-t border-slate-800 space-y-4">
               {isSyncing && (
-                <div className="flex items-center gap-2 text-[10px] text-emerald-400 font-bold px-2">
+                <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-bold px-2 py-1 bg-emerald-950/40 border border-emerald-800/40 rounded-lg">
                   <CloudSync size={14} className="animate-spin" /> SINKRONISASI...
                 </div>
               )}
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center gap-4 p-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                className="w-full flex items-center gap-3.5 p-3 rounded-xl text-rose-300 hover:bg-[#4c0519]/40 hover:text-rose-200 border border-transparent hover:border-[#881337]/50 transition-all font-medium"
               >
                 <LogOut size={20} />
                 {isSidebarOpen && <span>Keluar</span>}
@@ -689,27 +708,27 @@ const App: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 transition-all duration-300 print:ml-0 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
-          <header className="bg-white border-b sticky top-0 z-40 p-4 flex items-center justify-between shadow-sm print:hidden">
-            <h2 className="text-lg font-bold text-gray-700">
-              {activePage === 'dashboard' && 'Dashboard'}
-              {activePage === 'master' && 'Data Master'}
-              {activePage === 'realization' && 'Data Realisasi'}
-              {activePage === 'reports' && 'Laporan'}
-              {activePage === 'spreadsheet' && 'Koneksi Spreadsheet'}
+        <main className={`flex-1 transition-all duration-300 min-h-screen bg-slate-900 text-slate-100 print:ml-0 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+          <header className="bg-slate-950/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-sm print:hidden">
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              {activePage === 'dashboard' && 'Dashboard Analisis'}
+              {activePage === 'master' && 'Data Master Anggaran'}
+              {activePage === 'realization' && 'Data Realisasi Belanja'}
+              {activePage === 'reports' && 'Laporan Keuangan & Realisasi'}
+              {activePage === 'spreadsheet' && 'Pengaturan Google Spreadsheet'}
             </h2>
             <div className="flex items-center gap-4">
                <div className="text-right hidden md:block">
-                 <p className="text-xs font-bold text-gray-900">{user?.displayName || user?.email}</p>
-                 <p className="text-[10px] text-gray-500 uppercase">User Terverifikasi</p>
+                 <p className="text-xs font-bold text-white">{user?.displayName || user?.email}</p>
+                 <p className="text-[10px] text-emerald-400 uppercase font-semibold">User Terverifikasi</p>
                </div>
-               <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-200 overflow-hidden">
+               <div className="w-10 h-10 rounded-full bg-[#064e3b] border border-emerald-500/50 flex items-center justify-center text-white font-black shadow-md shadow-emerald-950 overflow-hidden">
                  {user?.photoURL ? <img src={user.photoURL} alt="" /> : user?.email?.charAt(0).toUpperCase()}
                </div>
             </div>
           </header>
 
-          <div className="p-6 md:p-8">
+          <div className="p-6 md:p-8 bg-slate-900 text-slate-100">
             {activePage === 'dashboard' && <Dashboard masterData={masterData} realizationData={realizationData} spendingData={spendingData} />}
             {activePage === 'master' && <MasterDataPage data={masterData} setData={updateMasterData} replaceData={replaceMasterData} deleteRow={deleteMasterData} clearAll={clearMasterData} />}
             {activePage === 'realization' && <RealizationDataPage data={realizationData} setData={updateRealizationData} replaceData={replaceRealizationData} deleteRow={deleteRealizationData} clearAll={clearRealizationData} masterData={masterData} />}
